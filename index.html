@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paperstack</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Paperstack">
+<meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  /* Brokerage-app layout: iOS system type, white cards on cool grey, dark primary buttons, gain/loss kept semantic. One screen, bottom tab bar, pushed detail pages. */
+  --bg:#f2f3f5; --surface:#ffffff; --ink:#15181c; --muted:#686f7a; --line:#e3e6ea; --link:#1d5fc4;
+  --btn:#15181c; --btn-ink:#ffffff; --soft:#eef0f3;
+  --up:#0b8a3a; --up-bg:#e3f4e8; --down:#c4282c; --down-bg:#fbe7e7; --warn:#9a5b00; --warn-bg:#fdf1de;
+  --font:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --display:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono:ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --surface:#15171a; --ink:#f1f3f5; --muted:#99a0aa; --line:#2a2e34; --link:#6ea4ff;
+    --btn:#f1f3f5; --btn-ink:#000000; --soft:#22262b;
+    --up:#34c76a; --up-bg:#0f2a19; --down:#ff6461; --down-bg:#331414; --warn:#f2b14b; --warn-bg:#33240f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#15171a; --ink:#f1f3f5; --muted:#99a0aa; --line:#2a2e34; --link:#6ea4ff;
+  --btn:#f1f3f5; --btn-ink:#000000; --soft:#22262b;
+  --up:#34c76a; --up-bg:#0f2a19; --down:#ff6461; --down-bg:#331414; --warn:#f2b14b; --warn-bg:#33240f;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{max-width:600px;margin:0 auto;min-height:100%;padding:calc(env(safe-area-inset-top) + 8px) 0 calc(env(safe-area-inset-bottom) + 90px)}
+.app.page{padding-bottom:calc(env(safe-area-inset-bottom) + 24px)}
+.px{padding-left:16px;padding-right:16px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px 4px}
+.brandline{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.brandline b{color:var(--ink)}
+.bigtitle{font-family:var(--display);font-size:30px;font-weight:700;letter-spacing:-.02em;margin:2px 0 10px}
+.iconbtn{border:0;background:transparent;width:40px;height:40px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
+.iconbtn:hover{background:var(--soft)}
+.iconbtn svg{width:22px;height:22px}
+.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pagebar{position:sticky;top:0;z-index:4;background:var(--bg);display:grid;grid-template-columns:48px 1fr 48px;align-items:center;padding:calc(env(safe-area-inset-top) + 4px) 8px 6px}
+.pagebar h1{font-size:17px;font-weight:600;text-align:center;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stack{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border-radius:14px;padding:16px;margin:0 12px}
+.card.flush{padding:0}
+.card h2{font-size:17px;font-weight:700;margin:0;letter-spacing:-.01em}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.tiny{font-size:12px}
+.num{font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .down{color:var(--down)}
+.balance{font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.label{font-size:13px;color:var(--muted);font-weight:500}
+.chg{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.ranges{display:flex;gap:4px;justify-content:space-between}
+.ranges button{flex:1;border:0;background:transparent;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;min-height:32px}
+.ranges button.on{background:var(--soft);color:var(--ink)}
+.chart svg{width:100%;height:auto;display:block}
+.list > .li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-top:1px solid var(--line);cursor:pointer;background:transparent;width:100%;text-align:left;border-left:0;border-right:0;border-bottom:0}
+.list > .li:first-child{border-top:0}
+.list > .li:hover{background:var(--soft)}
+.li .t1{font-weight:600}
+.li .t2{font-size:13px;color:var(--muted)}
+.li .r{text-align:right;white-space:nowrap}
+.chev{color:var(--muted);flex:none}
+.sectionhead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 4px}
+.sectionhead h2{font-size:17px;margin:0}
+.link{border:0;background:transparent;color:var(--link);font-weight:600;cursor:pointer;padding:6px 0;font-size:15px}
+.btn{border:0;background:var(--btn);color:var(--btn-ink);border-radius:999px;padding:12px 18px;font-weight:600;cursor:pointer;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.sec{background:var(--soft);color:var(--ink)}
+.btn.buy{background:var(--up);color:#fff}
+.btn.sell{background:var(--down);color:#fff}
+.btn.block{width:100%}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+.seg{display:flex;background:var(--soft);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;border-radius:8px;padding:8px 6px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer;min-height:38px}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.seg button[disabled]{opacity:.4;cursor:not-allowed}
+.tabsline{display:flex;gap:18px;padding:0 16px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabsline button{border:0;background:transparent;padding:10px 0;font-weight:600;font-size:15px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tabsline button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.field{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:11px 12px;min-height:46px}
+.field:focus{outline:2px solid var(--link);outline-offset:-1px}
+select.field{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 20px,calc(100% - 13px) 20px;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+textarea.field{min-height:64px;resize:vertical}
+.tk{display:flex;flex-direction:column}
+.tk .fr{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--line)}
+.tk .fr:first-child{border-top:0}
+.tk .fr > label{font-size:14px;color:var(--muted);font-weight:500}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:11px 16px;border-top:1px solid var(--line);font-size:15px}
+.kv:first-child{border-top:0}
+.kv span:first-child{color:var(--muted)}
+.kv span:last-child{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.kv.total span{font-weight:700;color:var(--ink)}
+.alert{border-radius:10px;padding:10px 12px;font-size:14px;background:var(--warn-bg);color:var(--warn)}
+.alert.err{background:var(--down-bg);color:var(--down)}
+.alert.ok{background:var(--up-bg);color:var(--up)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:14px;font-weight:600;cursor:pointer;min-height:36px}
+.chip:hover{border-color:var(--ink)}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:6px;background:var(--soft);color:var(--muted)}
+.pill.open{background:var(--warn-bg);color:var(--warn)}
+.pill.filled{background:var(--up-bg);color:var(--up)}
+.pill.bad{background:var(--down-bg);color:var(--down)}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.status .dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.status.open .dot{background:var(--up)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:4px 4px calc(env(safe-area-inset-bottom) + 4px);z-index:6}
+nav.tabs .in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;min-height:50px}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button.on{color:var(--ink)}
+.stickybottom{position:sticky;bottom:0;background:var(--bg);padding:12px 12px calc(env(safe-area-inset-bottom) + 12px);display:flex;gap:10px;z-index:3}
+.hero{padding:4px 16px 10px}
+.qprice{font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.grid2 .kv:nth-child(2){border-top:0}
+.check{width:64px;height:64px;border-radius:32px;background:var(--up-bg);color:var(--up);display:flex;align-items:center;justify-content:center;margin:12px auto 0}
+.check svg{width:34px;height:34px}
+.updbar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 70px);z-index:15;max-width:576px;margin:0 auto;background:var(--btn);color:var(--btn-ink);border-radius:14px;padding:10px 10px 10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.updbar span{flex:1;font-weight:600;font-size:14px}
+.updbar button{border:0;border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer;background:var(--btn-ink);color:var(--btn)}
+.updbar button.x{background:transparent;color:var(--btn-ink);padding:8px 10px}
+.livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--up);margin-right:4px;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.reason{font-size:14px;border-left:3px solid var(--line);padding-left:10px}
+.skel{height:14px;border-radius:7px;background:var(--line)}
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20;padding:12px}
+.modal{background:var(--surface);border-radius:18px;padding:18px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:12px;margin-bottom:env(safe-area-inset-bottom)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px;font-weight:700;cursor:pointer;min-height:48px;font-variant-numeric:tabular-nums}
+.opt.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.foot{font-size:12px;color:var(--muted);text-align:center;padding:14px 16px}
+.sr{position:absolute;left:-9999px}
+@media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+</style>
+</head>
+<body>
+<div class="app" id="app"><div class="card stack" style="margin-top:60px"><div class="skel" style="width:40%"></div><div class="skel" style="width:70%;height:30px"></div><div class="skel" style="width:55%"></div></div></div>
+<nav class="tabs" id="tabs" aria-label="Main"></nav>
+<div id="modal"></div>
+<div id="upd"></div>
+<script>
+(function(){
+"use strict";
+/* ================= constants ================= */
+const VERSION = "1.0.0";
+const BENCH = "VOO", LS_KEY = "paperstack.gh.v1", CRYPTO_FEE = 0.01;
+const FH = "https://finnhub.io/api/v1", CGAPI = "https://api.coingecko.com/api/v3";
+const ACCTS = {
+  brokerage: {id:"brokerage", name:"Individual", sub:"Brokerage · Practice", num:"…4193"},
+  crypto:    {id:"crypto",    name:"Crypto",     sub:"Crypto · Practice",    num:"…7720"}
+};
+const COINS = [{id:"bitcoin", sym:"BTC", name:"Bitcoin"}, {id:"ethereum", sym:"ETH", name:"Ethereum"}, {id:"litecoin", sym:"LTC", name:"Litecoin"}, {id:"solana", sym:"SOL", name:"Solana"}];
+const OT_LABEL = {market:"Market", limit:"Limit", stop:"Stop loss", stoplimit:"Stop limit"};
+const TIF_LABEL = {day:"Day", gtc:"Good 'til canceled"};
+
+/* ================= state ================= */
+const S = {
+  account:null, trades:[], orders:[], history:{points:[]}, prices:{quotes:{}, charts:{}},
+  settings:{fhKey:"", avKey:"", lastBackup:0},
+  ready:false, startedUp:false, saveErr:"",
+  tab:"home", stack:[], range:"1M",
+  refreshing:false, flash:"", flashKind:"", live:false, update:null,
+  tk:null, lastOrderId:null,
+  look:{q:"", busy:false, err:"", results:null},
+  xfer:{from:"brokerage", amt:"", err:""},
+  rec:{kind:"stock", sym:"", amt:"50", freq:"weekly", busy:false, err:""},
+  setupAmt:100000, setupBusy:false, resetting:false, modal:null
+};
+
+/* ================= helpers ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const clone = o => JSON.parse(JSON.stringify(o));
+const rid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const round = (n, d) => { const f = Math.pow(10, d); return Math.round(n * f) / f; };
+const USD = new Intl.NumberFormat("en-US", {style:"currency", currency:"USD"});
+const money = n => (n == null || isNaN(n)) ? "—" : USD.format(n);
+const px = n => (n == null || isNaN(n)) ? "—" : Math.abs(n) < 1 ? "$" + (+n).toPrecision(4) : USD.format(n);
+const sMoney = n => (n == null || isNaN(n)) ? "—" : (n >= 0 ? "+" : "−") + USD.format(Math.abs(n));
+const pct = n => (n == null || isNaN(n) || !isFinite(n)) ? "—" : (n >= 0 ? "+" : "−") + Math.abs(n).toFixed(2) + "%";
+const qf = q => (+q).toLocaleString("en-US", {maximumFractionDigits: 6});
+const cls = n => n > 0.000001 ? "up" : n < -0.000001 ? "down" : "";
+const num = v => { const n = parseFloat(String(v == null ? "" : v).replace(/[$,\s]/g, "")); return isNaN(n) ? 0 : n; };
+const err = (code, message) => ({code, message});
+const acctOf = key => key && key.startsWith("C:") ? "crypto" : "brokerage";
+const orderNo = id => "P" + String(id).slice(-7).toUpperCase();
+const when = ts => new Date(ts).toLocaleString([], {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"});
+const CHEV = '<svg class="chev" width="8" height="14" viewBox="0 0 8 14" aria-hidden="true"><path d="M1 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* ================= market clock (ET; holidays not modeled) ================= */
+const etFmt = new Intl.DateTimeFormat("en-US", {timeZone:"America/New_York", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", weekday:"short", hour12:false});
+function et(d){ const o = {}; etFmt.formatToParts(d || new Date()).forEach(p => o[p.type] = p.value); return {date:`${o.year}-${o.month}-${o.day}`, mins:((+o.hour) % 24) * 60 + (+o.minute), wd:o.weekday}; }
+const isWeekday = wd => !["Sat","Sun"].includes(wd);
+function marketOpen(d){ const p = et(d); return isWeekday(p.wd) && p.mins >= 570 && p.mins < 960; }
+function shiftDate(iso, n){ const [y,m,d] = iso.split("-").map(Number); return new Date(Date.UTC(y, m-1, d + n)).toISOString().slice(0,10); }
+function dowOf(iso){ const [y,m,d] = iso.split("-").map(Number); return new Date(Date.UTC(y, m-1, d)).getUTCDay(); }
+function sessionId(d){ const p = et(d); let day = p.date; if (!(isWeekday(p.wd) && p.mins >= 960)) day = shiftDate(day, -1); while ([0,6].includes(dowOf(day))) day = shiftDate(day, -1); return day; }
+function nextSessionDay(){ const p = et(); if (isWeekday(p.wd) && p.mins < 960) return p.date; let d = shiftDate(p.date, 1); while ([0,6].includes(dowOf(d))) d = shiftDate(d, 1); return d; }
+const today = () => et().date;
+
+/* ================= persistence (on this device) ================= */
+let saveTimer = null;
+function persist(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({account:S.account, trades:S.trades, orders:S.orders, history:S.history, prices:S.prices, settings:S.settings}));
+      if (S.saveErr) { S.saveErr = ""; render(); }
+    } catch(e) { S.saveErr = "Your phone's storage for this app is full. Make a backup, then Start over."; render(); }
+  }, 150);
+}
+const saveDoc = () => { persist(); return Promise.resolve(); };
+const saveItem = () => { persist(); return Promise.resolve(); };
+const deleteItem = () => Promise.resolve();
+function loadLocal(){
+  try { const d = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    if (d) { S.account = d.account || null; S.trades = d.trades || []; S.orders = d.orders || []; S.history = d.history || {points:[]};
+      S.prices = d.prices || S.prices; S.prices.quotes = S.prices.quotes || {}; S.prices.charts = S.prices.charts || {}; S.settings = Object.assign(S.settings, d.settings || {}); } } catch(e) {}
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e) {}
+}
+function backupJSON(){ return JSON.stringify({app:"paperstack", version:VERSION, savedAt:new Date().toISOString(), account:S.account, trades:S.trades, orders:S.orders, history:S.history, settings:{lastBackup:S.settings.lastBackup}}); }
+async function doBackup(){
+  const name = `paperstack-backup-${today()}.json`, blob = new Blob([backupJSON()], {type:"application/json"});
+  try {
+    const file = new File([blob], name, {type:"application/json"});
+    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:"Paperstack backup"}); }
+    else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+    S.settings.lastBackup = Date.now(); persist(); S.flash = "Backup saved. Pick iCloud Drive in Save to Files to keep it safe."; S.flashKind = "ok";
+  } catch(e) { if (e && e.name === "AbortError") return; S.flash = "The backup didn't save. Try again."; S.flashKind = "warn"; }
+  render();
+}
+async function restoreFrom(file){
+  try { const d = JSON.parse(await file.text());
+    if (!d || d.app !== "paperstack" || !d.account) throw 0;
+    S.account = d.account; S.trades = d.trades || []; S.orders = d.orders || []; S.history = d.history || {points:[]};
+    persist(); S.stack = []; S.tab = "home"; S.flash = "Backup restored."; S.flashKind = "ok"; render(); refreshPrices(true);
+  } catch(e) { S.flash = "That file isn't a Paperstack backup."; S.flashKind = "warn"; render(); }
+}
+
+/* ================= prices: Finnhub (stocks, real time) + CoinGecko (crypto) ================= */
+function priceMsg(e){
+  switch (e && e.code) {
+    case "nokey": return "Add your free Finnhub key in Settings to get stock prices.";
+    case "badkey": return "Finnhub didn't accept your key. Check it in Settings.";
+    case "rate": return "Too many price requests in the last minute. Prices will catch up shortly.";
+    case "offline": return "Can't reach the price service. Check your connection.";
+    default: return (e && e.message) || "Prices couldn't be updated. Try again.";
+  }
+}
+let fhLast = 0, fhChain = Promise.resolve();
+function fhGet(path, params){
+  const run = async () => {
+    if (!S.settings.fhKey) throw err("nokey", "");
+    const wait = fhLast + 260 - Date.now(); if (wait > 0) await sleep(wait); fhLast = Date.now();
+    const qs = new URLSearchParams(Object.assign({}, params, {token:S.settings.fhKey}));
+    let r; try { r = await fetch(`${FH}${path}?${qs}`, {cache:"no-store"}); } catch(e) { throw err("offline", ""); }
+    if (r.status === 401 || r.status === 403) throw err("badkey", "");
+    if (r.status === 429) throw err("rate", "");
+    if (!r.ok) throw err("bad", "Finnhub had a problem (" + r.status + ").");
+    return r.json();
+  };
+  const p = fhChain.then(run, run); fhChain = p.catch(() => {}); return p;
+}
+async function fetchStock(sym){
+  sym = sym.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, "");
+  if (!sym) throw err("notfound", "Enter a ticker symbol.");
+  const d = await fhGet("/quote", {symbol:sym});
+  if (!d || (!d.c && !d.pc)) throw err("notfound", `No U.S. stock or ETF found for "${sym}". Check the symbol, or search by company name.`);
+  const key = "S:" + sym, old = S.prices.quotes[key] || {}, now = Date.now(), open = marketOpen();
+  const q = Object.assign({}, old, {key, kind:"stock", symbol:sym, name:old.name || sym, price:d.c || d.pc, prev:d.pc, open:d.o, high:d.h, low:d.l,
+    changePct:d.pc ? ((d.c || d.pc) / d.pc - 1) * 100 : 0, tradeAt:d.t ? d.t * 1000 : null, t:now, live:open});
+  S.prices.quotes[key] = q;
+  if (!old.name || old.name === sym) nameLookup(sym);
+  return q;
+}
+const nameTried = {};
+async function nameLookup(sym){
+  if (nameTried[sym]) return; nameTried[sym] = 1;
+  try { const p = await fhGet("/stock/profile2", {symbol:sym}); let name = p && p.name;
+    if (!name) { const s = await fhGet("/search", {q:sym, exchange:"US"}); const m = (s.result || []).find(x => x.symbol === sym); name = m && m.description; }
+    if (name && S.prices.quotes["S:" + sym]) { S.prices.quotes["S:" + sym].name = titleCase(name); persist(); scheduleRender(); } } catch(e) {}
+}
+const titleCase = s => s.length > 4 && s === s.toUpperCase() ? s.toLowerCase().replace(/\b([a-z])/g, m => m.toUpperCase()).replace(/\b(Etf|Spdr|Ii|Iii|Inc|Corp|Plc|Usa|Us|S&p)\b/g, m => ({Etf:"ETF",Spdr:"SPDR",Ii:"II",Iii:"III",Usa:"USA",Us:"US","S&p":"S&P"})[m] || m) : s;
+async function searchStocks(text){
+  const s = await fhGet("/search", {q:text, exchange:"US"});
+  return (s.result || []).filter(x => !/\./.test(x.symbol) || /^[A-Z]+\.[A-Z]$/.test(x.symbol)).slice(0, 8).map(x => ({symbol:x.symbol, name:titleCase(x.description || ""), type:x.type || ""}));
+}
+async function fetchCrypto(ids){
+  if (!ids.length) return [];
+  let r; try { r = await fetch(`${CGAPI}/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids.join(","))}&sparkline=true&price_change_percentage=24h`, {cache:"no-store"}); } catch(e) { throw err("offline", ""); }
+  if (r.status === 429) throw err("rate", "");
+  if (!r.ok) throw err("bad", "CoinGecko had a problem (" + r.status + ").");
+  const list = await r.json();
+  return list.map(c => {
+    const sp = ((c.sparkline_in_7d && c.sparkline_in_7d.price) || []).filter((x, i, a) => i % 3 === 0 || i === a.length - 1).map(v => round(v, 6));
+    const q = {key:"C:" + c.id, kind:"crypto", id:c.id, symbol:String(c.symbol || c.id).toUpperCase(), name:c.name || c.id, price:+c.current_price,
+      changePct:c.price_change_percentage_24h == null ? null : +c.price_change_percentage_24h, high:c.high_24h, low:c.low_24h, spark:sp, t:Date.now(), live:true};
+    S.prices.quotes[q.key] = q; return q;
+  });
+}
+async function fetchChart(sym){
+  if (!S.settings.avKey) throw err("bad", "Add a free Alpha Vantage key in Settings to see stock charts.");
+  let r; try { r = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=compact&symbol=${encodeURIComponent(sym)}&apikey=${encodeURIComponent(S.settings.avKey)}`); } catch(e) { throw err("offline", ""); }
+  const p = await r.json(); const ts = p["Time Series (Daily)"];
+  if (!ts) throw err("bad", (p.Note || p.Information) ? "Alpha Vantage's free daily limit is used up. Try tomorrow." : "Chart data wasn't available for " + sym + ".");
+  const pts = Object.keys(ts).sort().map(d => ({d, c:+ts[d]["4. close"]})).filter(x => x.c > 0);
+  S.prices.charts[sym] = {session:sessionId(), pts:pts.slice(-100)};
+  const keys = Object.keys(S.prices.charts); if (keys.length > 15) delete S.prices.charts[keys[0]];
+  persist(); return S.prices.charts[sym];
+}
+function stockFresh(q, strict){ if (!q) return false; if (marketOpen()) return (Date.now() - q.t) < (strict ? 20e3 : 60e3); return q.t > sessionCloseMs() + 5 * 60e3; }
+function sessionCloseMs(){ const s = sessionId(); const p = et(); // approximate: last close = 4:00pm ET on session day
+  const nowEtMins = p.mins; const daysBack = Math.round((Date.parse(p.date) - Date.parse(s)) / 864e5);
+  return Date.now() - ((daysBack * 1440 + nowEtMins - 960) * 60e3); }
+const cryptoFresh = (q, strict) => !!q && (Date.now() - q.t) < (strict ? 20e3 : 60e3);
+async function quoteFor(key, strict){
+  const q = S.prices.quotes[key];
+  if (key.startsWith("S:")) return stockFresh(q, strict) ? q : fetchStock(key.slice(2));
+  if (cryptoFresh(q, strict)) return q;
+  const r = await fetchCrypto([key.slice(2)]); if (!r.length) throw err("notfound", "CoinGecko couldn't find that coin."); return r[0];
+}
+
+/* ----- live stream: Finnhub WebSocket trades while the market is open ----- */
+let ws = null, wsSubs = new Set(), wsRetry = 0, renderPending = false;
+function scheduleRender(){ if (renderPending) return; renderPending = true; setTimeout(() => { renderPending = false; if (!isTyping()) render(); }, 1000); }
+function isTyping(){ const a = document.activeElement; return a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName); }
+function wantedStreams(){
+  if (!S.account) return [];
+  const k = new Set(); const c = compute();
+  c.positions.filter(p => p.kind === "stock").forEach(p => k.add(p.key));
+  S.orders.filter(o => o.status === "open" && o.kind === "stock").forEach(o => k.add(o.key));
+  (S.account.watchlist || []).filter(x => x.startsWith("S:")).forEach(x => k.add(x));
+  const pg = top_(); if (pg && pg.type === "quote" && pg.key.startsWith("S:")) k.add(pg.key);
+  if (S.tk && S.tk.key && S.tk.key.startsWith("S:")) k.add(S.tk.key);
+  k.add("S:" + BENCH);
+  return [...k].slice(0, 45).map(x => x.slice(2));
+}
+function syncStream(){
+  const want = (marketOpen() && S.settings.fhKey && !document.hidden) ? wantedStreams() : [];
+  if (!want.length) { if (ws) { try { ws.close(); } catch(e) {} ws = null; wsSubs.clear(); S.live = false; } return; }
+  if (!ws) {
+    try { ws = new WebSocket("wss://ws.finnhub.io?token=" + encodeURIComponent(S.settings.fhKey)); } catch(e) { ws = null; return; }
+    ws.onopen = () => { wsRetry = 0; wsSubs.clear(); syncStream(); };
+    ws.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch(e) { return; } if (m.type !== "trade" || !m.data) return;
+      const last = {}; m.data.forEach(t => last[t.s] = t);
+      Object.values(last).forEach(t => { const q = S.prices.quotes["S:" + t.s]; if (!q || !t.p) return; q.price = t.p; q.t = Date.now(); q.live = true; if (q.prev) q.changePct = (t.p / q.prev - 1) * 100; });
+      S.live = true; tickOrders(); scheduleRender(); };
+    ws.onclose = () => { ws = null; wsSubs.clear(); S.live = false; if (wsRetry < 6) setTimeout(syncStream, 3000 * Math.pow(2, wsRetry++)); };
+    ws.onerror = () => {};
+    return;
+  }
+  if (ws.readyState !== 1) return;
+  want.forEach(s => { if (!wsSubs.has(s)) { ws.send(JSON.stringify({type:"subscribe", symbol:s})); wsSubs.add(s); } });
+  [...wsSubs].forEach(s => { if (!want.includes(s)) { ws.send(JSON.stringify({type:"unsubscribe", symbol:s})); wsSubs.delete(s); } });
+}
+let tickTimer = null;
+function tickOrders(){ if (tickTimer) return; tickTimer = setTimeout(() => { tickTimer = null; evaluateOrders(); persist(); }, 1500); }
+/* ================= portfolio math ================= */
+function orderPrice(o, q){ return o.orderType === "market" ? (q ? q.price : 0) : o.orderType === "stop" ? o.stop : o.limit; }
+function estOrder(o, q){
+  const p = orderPrice(o, q) || 0, crypto = o.kind === "crypto";
+  let qty, gross, fee;
+  if (o.qtyType === "dollars") {
+    if (o.action === "buy") { const notional = crypto ? o.dollars / (1 + CRYPTO_FEE) : o.dollars; qty = p ? notional / p : 0; gross = notional; fee = crypto ? notional * CRYPTO_FEE : 0; }
+    else { qty = p ? o.dollars / p : 0; gross = o.dollars; fee = crypto ? gross * CRYPTO_FEE : 0; }
+  } else { qty = o.qty; gross = qty * p; fee = crypto ? gross * CRYPTO_FEE : 0; }
+  const total = o.action === "buy" ? gross + fee : gross - fee;
+  return {price:p, qty, gross, fee, total};
+}
+function compute(){
+  const a = S.account; if (!a) return null;
+  const A = {brokerage:{cash:a.startCash, pos:{}, realized:0, reserved:0, sellRes:{}}, crypto:{cash:0, pos:{}, realized:0, reserved:0, sellRes:{}}};
+  (a.transfers || []).forEach(t => { A[t.from].cash -= t.amount; A[t.to].cash += t.amount; });
+  S.trades.slice().sort((x, y) => x.ts - y.ts).forEach(t => {
+    const ac = A[t.acct || acctOf(t.key)];
+    const p = ac.pos[t.key] || (ac.pos[t.key] = {key:t.key, kind:t.kind, symbol:t.symbol, name:t.name, qty:0, cost:0});
+    if (t.side === "buy") { p.qty += t.qty; p.cost += t.total; ac.cash -= t.total; }
+    else { const avg = p.qty > 0 ? p.cost / p.qty : 0; ac.realized += t.total - avg * t.qty; p.cost -= avg * t.qty; p.qty -= t.qty; ac.cash += t.total; if (p.qty < 1e-9) { p.qty = 0; p.cost = 0; } }
+  });
+  S.orders.filter(o => o.status === "open").forEach(o => {
+    const ac = A[o.acct]; const q = S.prices.quotes[o.key];
+    if (o.action === "buy") ac.reserved += o.qtyType === "dollars" ? o.dollars : estOrder(o, q).total;
+    else ac.sellRes[o.key] = (ac.sellRes[o.key] || 0) + (o.qtyType === "dollars" ? (q ? o.dollars / q.price : 0) : o.qty);
+  });
+  const out = {accts:{}, total:0, dayChg:0, positions:[]};
+  for (const id of ["brokerage","crypto"]) {
+    const ac = A[id];
+    const positions = Object.values(ac.pos).filter(p => p.qty > 1e-9).map(p => {
+      const q = S.prices.quotes[p.key]; const price = q ? q.price : p.cost / p.qty; const value = p.qty * price;
+      let dayChg = 0;
+      if (q && p.kind === "stock" && q.prev) dayChg = p.qty * (q.price - q.prev);
+      else if (q && q.changePct != null) dayChg = value - value / (1 + q.changePct / 100);
+      return Object.assign(p, {acct:id, price, q, value, avg:p.cost / p.qty, gain:value - p.cost, gainPct:p.cost > 0 ? (value / p.cost - 1) * 100 : 0, dayChg, dayPct:q ? q.changePct : null, avail:p.qty - (ac.sellRes[p.key] || 0)});
+    }).sort((x, y) => y.value - x.value);
+    const mv = positions.reduce((s, p) => s + p.value, 0), value = ac.cash + mv, dayChg = positions.reduce((s, p) => s + p.dayChg, 0);
+    positions.forEach(p => p.weight = value > 0 ? p.value / value * 100 : 0);
+    out.accts[id] = {id, cash:ac.cash, avail:ac.cash - ac.reserved, reserved:ac.reserved, mv, value, dayChg, dayPct:(value - dayChg) > 0 ? dayChg / (value - dayChg) * 100 : 0, realized:ac.realized, positions,
+      gain:positions.reduce((s, p) => s + p.gain, 0), basis:positions.reduce((s, p) => s + p.cost, 0)};
+    out.total += value; out.dayChg += dayChg; out.positions = out.positions.concat(positions);
+  }
+  out.dayPct = (out.total - out.dayChg) > 0 ? out.dayChg / (out.total - out.dayChg) * 100 : 0;
+  out.gain = out.total - a.startCash; out.ret = (out.total / a.startCash - 1) * 100;
+  out.realized = out.accts.brokerage.realized + out.accts.crypto.realized;
+  const vq = S.prices.quotes["S:" + BENCH];
+  out.benchVal = null; out.benchRet = null;
+  if (a.bench && a.bench.startPrice && vq) { out.benchVal = a.startCash * vq.price / a.bench.startPrice; out.benchRet = (vq.price / a.bench.startPrice - 1) * 100; }
+  return out;
+}
+function recordHistory(force){
+  const c = compute(); if (!c) return;
+  const pts = S.history.points || (S.history.points = []), now = Date.now();
+  const pt = {t:now, v:round(c.total, 2), b:c.benchVal == null ? null : round(c.benchVal, 2)};
+  const last = pts[pts.length - 1];
+  if (last && now - last.t < 30 * 60e3 && !force) { if (last.v === pt.v && last.b === pt.b) return; pts[pts.length - 1] = pt; } else pts.push(pt);
+  if (pts.length > 1500) pts.splice(0, pts.length - 1500);
+  persist();
+}
+
+/* ================= orders engine ================= */
+function validateOrder(o, q){
+  const c = compute(), ac = c.accts[o.acct];
+  if (o.qtyType === "dollars" ? !(o.dollars > 0) : !(o.qty > 0)) return "Enter a quantity above zero.";
+  if (o.qtyType === "dollars" && o.orderType !== "market" && o.kind === "stock") return "Dollar amounts work with market orders only. Switch to shares for limit and stop orders.";
+  if (["limit","stoplimit"].includes(o.orderType) && !(o.limit > 0)) return "Enter a limit price.";
+  if (["stop","stoplimit"].includes(o.orderType) && !(o.stop > 0)) return "Enter a stop price.";
+  if (!q || !q.price) return "Get a quote first.";
+  const est = estOrder(o, q);
+  if (est.gross < 1) return "The minimum order is $1.00.";
+  if (o.action === "buy" && est.total > ac.avail + 0.005) return `Not enough cash available to trade. You have ${money(ac.avail)} in ${ACCTS[o.acct].name}.`;
+  if (o.action === "sell") {
+    const p = ac.positions.find(x => x.key === o.key);
+    if (!p) return `You don't own ${o.symbol} in this account.`;
+    if (est.qty > p.avail + 1e-7) return `You can sell up to ${qf(Math.max(0, p.avail))} ${o.symbol}${p.avail < p.qty ? " (the rest is in open orders)" : ""}.`;
+  }
+  if (o.orderType === "stop" && o.action === "sell" && o.stop >= q.price) return "A sell stop must be below the current price.";
+  if (o.orderType === "stop" && o.action === "buy" && o.stop <= q.price) return "A buy stop must be above the current price.";
+  return "";
+}
+function expired(o){
+  if (o.tif === "gtc") return Date.now() - o.ts > 180 * 864e5;
+  const p = et();
+  if (o.kind === "crypto") return p.date > o.goodFor;
+  return p.date > o.goodFor || (p.date === o.goodFor && p.mins >= 960);
+}
+function canFillNow(o, q){
+  if (!q) return false;
+  if (o.kind === "crypto") return Date.now() - q.t < 5 * 60e3;
+  if (!marketOpen() || !q.live || Date.now() - q.t > 3 * 60e3) return false;
+  return et().date >= o.goodFor;
+}
+function triggerMet(o, price){
+  const buy = o.action === "buy";
+  switch (o.orderType) {
+    case "market": return true;
+    case "limit": return buy ? price <= o.limit : price >= o.limit;
+    case "stop": return buy ? price >= o.stop : price <= o.stop;
+    case "stoplimit":
+      if (!o.triggered) { if (buy ? price >= o.stop : price <= o.stop) o.triggered = true; else return false; }
+      return buy ? price <= o.limit : price >= o.limit;
+  }
+  return false;
+}
+async function fillOrder(o, q){
+  const c = compute(), ac = c.accts[o.acct];
+  const est = estOrder(Object.assign({}, o, {orderType:"market"}), q);
+  if (o.action === "buy" && est.total > ac.cash + 0.005) { o.status = "rejected"; o.note = "Not enough cash when the order tried to fill."; return saveItem("orders", o); }
+  if (o.action === "sell") { const p = ac.positions.find(x => x.key === o.key); if (!p || est.qty > p.qty + 1e-7) { o.status = "rejected"; o.note = "Not enough shares when the order tried to fill."; return saveItem("orders", o); }
+    if (Math.abs(est.qty - p.qty) < 1e-6) est.qty = p.qty; }
+  const qty = round(est.qty, 6);
+  const t = {id:rid(), ts:Date.now(), orderId:o.id, acct:o.acct, key:o.key, kind:o.kind, symbol:o.symbol, name:o.name, side:o.action, qty, price:q.price,
+    gross:round(qty * q.price, 2), fee:round(est.fee, 2), total:round(est.total, 2), reason:o.reason || "", lesson:"", auto:!!o.auto, marketOpen:o.kind === "stock" ? marketOpen() : true};
+  if (o.action === "sell") { const p = ac.positions.find(x => x.key === o.key); t.realized = round(t.total - p.avg * qty, 2); }
+  S.trades.push(t);
+  o.status = "filled"; o.fillPrice = q.price; o.fillQty = qty; o.filledAt = t.ts; o.fillTotal = t.total;
+  await saveItem("trades", t); await saveItem("orders", o);
+}
+let evalRunning = false;
+async function evaluateOrders(){
+  if (evalRunning || !S.account) return; evalRunning = true;
+  let changed = false;
+  for (const o of S.orders.filter(x => x.status === "open")) {
+    if (expired(o)) { o.status = "expired"; o.note = o.tif === "day" ? "Day order ended without filling." : "Order reached its 180-day limit."; await saveItem("orders", o); changed = true; continue; }
+    const q = S.prices.quotes[o.key];
+    if (!canFillNow(o, q)) continue;
+    const before = o.triggered;
+    if (triggerMet(o, q.price)) { await fillOrder(o, q); changed = true; }
+    else if (o.triggered !== before) { await saveItem("orders", o); changed = true; }
+  }
+  evalRunning = false;
+  if (changed) { recordHistory(true); render(); }
+}
+async function placeOrder(o){
+  o.id = rid(); o.ts = Date.now(); o.status = "open";
+  o.goodFor = o.kind === "crypto" ? today() : nextSessionDay();
+  if (o.orderType === "market") o.tif = "day";
+  S.orders.push(o); await saveItem("orders", o);
+  const q = S.prices.quotes[o.key];
+  if (canFillNow(o, q) && triggerMet(o, q.price)) await fillOrder(o, q);
+  else if (o.triggered) await saveItem("orders", o);
+  recordHistory(true);
+  return o;
+}
+async function cancelOrder(id){ const o = S.orders.find(x => x.id === id); if (!o || o.status !== "open") return; o.status = "canceled"; o.canceledAt = Date.now(); await saveItem("orders", o); render(); }
+
+/* ================= refresh ================= */
+function trackedKeys(){
+  const c = compute(), keys = new Set();
+  c.positions.forEach(p => keys.add(p.key));
+  S.orders.filter(o => o.status === "open").forEach(o => keys.add(o.key));
+  (S.account.recurring || []).forEach(r => keys.add(r.key));
+  keys.add("S:" + BENCH);
+  (S.account.watchlist || []).forEach(k => keys.add(k));
+  return [...keys];
+}
+async function refreshPrices(strict, onlyKeys, quiet){
+  if (S.refreshing || !S.account) return;
+  S.refreshing = true; if (!quiet) render();
+  const list = onlyKeys || trackedKeys();
+  const cryptoIds = list.filter(k => k.startsWith("C:")).map(k => k.slice(2)).filter(id => strict || !cryptoFresh(S.prices.quotes["C:" + id]));
+  const stocks = list.filter(k => k.startsWith("S:")).filter(k => !stockFresh(S.prices.quotes[k], strict));
+  let problem = "";
+  if (cryptoIds.length) { try { await fetchCrypto(cryptoIds); } catch(e) { problem = priceMsg(e); } }
+  for (const k of stocks.slice(0, 40)) {
+    try { await fetchStock(k.slice(2)); }
+    catch(e) { if (e.code === "notfound" || e.code === "bad") continue; problem = priceMsg(e); break; }
+  }
+  if (S.account.bench && !S.account.bench.startPrice && S.prices.quotes["S:" + BENCH]) { S.account.bench.startPrice = S.prices.quotes["S:" + BENCH].price; S.account.bench.startDate = today(); }
+  S.prices.lastRefresh = Date.now(); persist();
+  S.refreshing = false;
+  await evaluateOrders();
+  recordHistory(false);
+  if (problem && !quiet) { S.flash = problem; S.flashKind = "warn"; }
+  else if (problem && quiet && problem !== S.flash) { S.flash = problem; S.flashKind = "warn"; }
+  else if (!problem && S.flashKind === "warn" && quiet) S.flash = "";
+  syncStream();
+  if (!isTyping()) render();
+}
+let recRunning = false;
+function addPeriod(iso, f){ if (f === "weekly") return shiftDate(iso, 7); if (f === "biweekly") return shiftDate(iso, 14); const [y,m,d] = iso.split("-").map(Number); return new Date(Date.UTC(y, m, Math.min(d, 28))).toISOString().slice(0,10); }
+async function runRecurring(){
+  if (recRunning || !S.account) return;
+  const t = today(), due = (S.account.recurring || []).filter(p => p.next <= t);
+  if (!due.length) return; recRunning = true;
+  for (const p of due) {
+    let n = p.next; while (n <= t) n = addPeriod(n, p.freq); p.next = n; persist();
+    try {
+      const q = await quoteFor(p.key, false);
+      const o = {acct:acctOf(p.key), key:p.key, kind:q.kind, symbol:q.symbol, name:q.name, action:"buy", qtyType:"dollars", dollars:p.amount, qty:0, orderType:"market", tif:"day", reason:`Automatic investment (${p.freq})`, auto:true};
+      const v = validateOrder(o, q);
+      if (v) p.note = `Skipped ${t}: ${v}`; else { const placed = await placeOrder(o); p.note = placed.status === "filled" ? `Bought ${money(p.amount)} on ${t}` : `Order placed ${t}; fills when the market opens`; }
+    } catch(e) { p.note = `Skipped ${t}: ${priceMsg(e)}`; }
+    persist();
+  }
+  recRunning = false; render();
+}
+
+/* ================= setup ================= */
+async function startAccount(amount){
+  S.setupBusy = true; render();
+  S.trades = []; S.orders = [];
+  let vp = null; try { vp = (await quoteFor("S:" + BENCH, false)).price; } catch(e) {}
+  S.account = {v:2, startCash:amount, createdAt:Date.now(), bench:{symbol:BENCH, startPrice:vp, startDate:vp ? today() : null}, recurring:[], transfers:[], watchlist:["S:VOO","S:QQQ","C:bitcoin","C:ethereum"]};
+  S.history = {points:[{t:Date.now(), v:amount, b:vp ? amount : null}]};
+  persist();
+  S.setupBusy = false; S.resetting = false; S.tab = "home"; S.stack = [];
+  render(); refreshPrices(false, null, true);
+}
+
+/* ================= charts ================= */
+function lineChart(series, opts){
+  opts = opts || {};
+  const main = (series[0] || []).filter(p => p.y != null);
+  if (main.length < 2) return `<p class="small muted" style="margin:6px 0">${esc(opts.empty || "The chart fills in as prices update.")}</p>`;
+  const W = 600, H = opts.h || 190, L = 8, R = 8, T = 10, B = opts.axis ? 22 : 8;
+  const xs = main.map(p => p.x), x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const ys = []; series.forEach(s => (s || []).forEach(p => p.y != null && ys.push(p.y)));
+  let lo = Math.min(...ys), hi = Math.max(...ys); const pad = Math.max((hi - lo) * 0.1, Math.abs(hi) * 0.002, 0.0001); lo -= pad; hi += pad;
+  const X = x => L + (W - L - R) * (x1 === x0 ? 1 : (x - x0) / (x1 - x0)), Y = y => T + (H - T - B) * (1 - (y - lo) / (hi - lo));
+  const path = s => s.filter(p => p.y != null).map((p, i) => (i ? "L" : "M") + X(p.x).toFixed(1) + " " + Y(p.y).toFixed(1)).join(" ");
+  const up = main[main.length - 1].y >= main[0].y, col = up ? "var(--up)" : "var(--down)";
+  const last = main[main.length - 1];
+  const base = opts.baseline != null ? `<line x1="${L}" x2="${W - R}" y1="${Y(opts.baseline).toFixed(1)}" y2="${Y(opts.baseline).toFixed(1)}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 4" opacity=".7"/>` : "";
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.label || "Price chart")}">
+    <defs><linearGradient id="gf${opts.id || ""}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".18"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    ${base}
+    <path d="${path(main)} L${X(last.x).toFixed(1)} ${H - B} L${X(main[0].x).toFixed(1)} ${H - B} Z" fill="url(#gf${opts.id || ""})"/>
+    ${series[1] && series[1].filter(p => p.y != null).length > 1 ? `<path d="${path(series[1])}" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="5 4"/>` : ""}
+    <path d="${path(main)}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(last.x).toFixed(1)}" cy="${Y(last.y).toFixed(1)}" r="4" fill="${col}" stroke="var(--surface)" stroke-width="2"/>
+    ${opts.axis ? `<text x="${L}" y="${H - 5}" font-size="12" fill="var(--muted)">${esc(opts.axis[0])}</text><text x="${W - R}" y="${H - 5}" font-size="12" fill="var(--muted)" text-anchor="end">${esc(opts.axis[1])}</text>` : ""}
+  </svg>`;
+}
+function historyChart(){
+  const pts = S.history.points || [], now = Date.now();
+  const span = {"1W":7, "1M":30, "3M":91, "1Y":365}[S.range];
+  let from = span ? now - span * 864e5 : 0;
+  if (S.range === "YTD") from = new Date(new Date().getFullYear(), 0, 1).getTime();
+  let sel = pts.filter(p => p.t >= from);
+  const prior = pts.filter(p => p.t < from).pop(); if (prior) sel = [prior].concat(sel);
+  const d = t => new Date(t).toLocaleDateString("en-US", {month:"short", day:"numeric"});
+  return lineChart([sel.map(p => ({x:p.t, y:p.v})), sel.map(p => ({x:p.t, y:p.b}))], {id:"h", label:"Balance over time with the same money in VOO", axis:sel.length > 1 ? [d(sel[0].t), d(sel[sel.length - 1].t)] : null, empty:"Your balance chart fills in as prices update over the next few days."});
+}
+
+/* ================= navigation ================= */
+function go(page){ S.stack.push(page); S.flash = ""; render(); window.scrollTo(0, 0); }
+function back(){ S.stack.pop(); S.flash = ""; render(); window.scrollTo(0, 0); }
+const top_ = () => S.stack[S.stack.length - 1];
+function openTicket(pre){
+  pre = pre || {};
+  const key = pre.key || null, q = key ? S.prices.quotes[key] : null;
+  S.tk = {acct:key ? acctOf(key) : "brokerage", key, kind:key ? (key.startsWith("C:") ? "crypto" : "stock") : "stock", symbol:q ? q.symbol : (pre.symbol || ""), name:q ? q.name : "",
+    action:pre.action || "buy", qtyType:"shares", qty:"", orderType:"market", limit:"", stop:"", tif:"day", note:"", err:"", busy:false, symIn:q ? q.symbol : ""};
+  go({type:"ticket"});
+}
+
+/* ================= views ================= */
+const ICON = {
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z"/></svg>',
+  investing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16"/><path d="M7 15l4-4 3 3 5-6"/></svg>',
+  transact:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg>',
+  journal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M9 9h6M9 13h6"/></svg>',
+  discover:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>',
+  refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>',
+  starOn:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>'
+};
+function render(){
+  const app = $("#app"); renderModal();
+  if (!S.ready) { $("#tabs").innerHTML = ""; app.innerHTML = S.slow ? `<div class="card stack" style="margin-top:60px"><h2>Still loading</h2><p class="muted" style="margin:0">Your saved data can't be reached yet. It will appear as soon as it loads.</p></div>` : app.innerHTML; return; }
+  if (!S.account || S.resetting) { $("#tabs").innerHTML = ""; app.className = "app page"; app.innerHTML = setupView(); return; }
+  const pg = top_();
+  if (pg) { $("#tabs").innerHTML = ""; app.className = "app page"; app.innerHTML = pageView(pg); afterRender(); return; }
+  app.className = "app";
+  $("#tabs").innerHTML = `<div class="in">${["home","investing","transact","journal","discover"].map(t => `<button type="button" data-act="tab" data-tab="${t}" class="${S.tab === t ? "on" : ""}" aria-current="${S.tab === t ? "page" : "false"}">${ICON[t]}<span>${t[0].toUpperCase() + t.slice(1)}</span></button>`).join("")}</div>`;
+  app.innerHTML = ({home:homeView, investing:investingView, transact:transactView, journal:journalView, discover:discoverView})[S.tab]();
+  afterRender();
+}
+function afterRender(){ const el = $("#tkEst"); if (el) el.innerHTML = tkEstHtml(); }
+function headerBar(title){
+  const open = marketOpen();
+  return `<div class="topbar"><div><div class="brandline"><b>Paperstack</b> · Practice money</div></div>
+    <div class="row" style="gap:2px"><span class="status ${open ? "open" : ""}">${S.live ? '<span class="livedot"></span>Live' : `<span class="dot"></span>${open ? "Market open" : "Market closed"}`}</span>
+    <button type="button" class="iconbtn ${S.refreshing ? "spin" : ""}" data-act="refresh" aria-label="Update prices" ${S.refreshing ? "disabled" : ""}>${ICON.refresh}</button>
+    <button type="button" class="iconbtn" data-act="settings" aria-label="Settings">${ICON.gear}</button></div></div>
+    <div class="px"><div class="bigtitle">${esc(title)}</div></div>
+    ${S.saveErr ? `<div class="px" style="margin-bottom:10px"><div class="alert">${esc(S.saveErr)}</div></div>` : ""}
+    ${!S.settings.fhKey ? `<div class="px" style="margin-bottom:10px"><button type="button" class="alert" style="border:0;width:100%;text-align:left;cursor:pointer" data-act="settings">Add your free Finnhub key to get live stock prices. Tap to open Settings.</button></div>` : ""}
+    ${backupDue() ? `<div class="px" style="margin-bottom:10px"><div class="alert row between"><span>It's been a while since your last backup.</span><button type="button" class="link" data-act="backup">Back up</button></div></div>` : ""}
+    ${S.flash ? `<div class="px" style="margin-bottom:10px"><div class="alert ${S.flashKind === "ok" ? "ok" : ""}">${esc(S.flash)}</div></div>` : ""}`;
+}
+function pageBar(title, right){ return `<div class="pagebar"><button type="button" class="iconbtn" data-act="back" aria-label="Back">${ICON.back}</button><h1>${esc(title)}</h1><div>${right || ""}</div></div>`; }
+const chgLine = (v, p, suffix) => `<span class="chg ${cls(v)}">${sMoney(v)} (${pct(p)})${suffix ? ` <span class="muted" style="font-weight:500">${suffix}</span>` : ""}</span>`;
+
+function homeView(){
+  const c = compute(), a = S.account;
+  const ranges = ["1W","1M","3M","YTD","1Y","All"];
+  const wl = (a.watchlist || []).map(k => { const q = S.prices.quotes[k]; const sym = q ? q.symbol : k.slice(2).toUpperCase();
+    return `<button type="button" class="li" data-act="quote" data-key="${esc(k)}"><div><div class="t1">${esc(sym)}</div><div class="t2">${esc(q && q.name && q.name !== q.symbol ? q.name : k.startsWith("C:") ? "Crypto" : "")}</div></div>
+      <div class="r"><div class="num" style="font-weight:600">${q ? px(q.price) : "—"}</div><div class="tiny num ${cls(q && q.changePct)}">${q ? pct(q.changePct) : "No price yet"}</div></div></button>`; }).join("");
+  return headerBar("Home") + `
+  <div class="stack">
+    <section class="card stack" aria-label="Balance">
+      <div><div class="label">Total balance</div><div class="balance">${money(c.total)}</div>${chgLine(c.dayChg, c.dayPct, "Today")}</div>
+      <div class="chart">${historyChart()}</div>
+      <div class="ranges" role="tablist">${ranges.map(r => `<button type="button" class="${S.range === r ? "on" : ""}" data-act="range" data-v="${r}">${r}</button>`).join("")}</div>
+      <div class="row between small"><span class="muted">Since start ${pct(c.ret)}</span><span class="muted">${c.benchRet == null ? "S&amp;P 500 (VOO) loading" : `VOO ${pct(c.benchRet)} <span style="display:inline-block;width:14px;border-top:2px dashed var(--muted);vertical-align:middle"></span>`}</span></div>
+    </section>
+    <section class="card flush" aria-label="Accounts">
+      <div class="sectionhead"><h2>Accounts</h2></div>
+      <div class="list">${["brokerage","crypto"].map(id => { const ac = c.accts[id];
+        return `<button type="button" class="li" data-act="account" data-id="${id}"><div><div class="t1">${ACCTS[id].name} <span class="muted" style="font-weight:500">${ACCTS[id].num}</span></div><div class="t2">${ACCTS[id].sub}</div></div>
+        <div class="row"><div class="r"><div class="num" style="font-weight:600">${money(ac.value)}</div><div class="tiny num ${cls(ac.dayChg)}">${sMoney(ac.dayChg)} today</div></div>${CHEV}</div></button>`; }).join("")}</div>
+    </section>
+    <section class="card flush" aria-label="Watchlist">
+      <div class="sectionhead"><h2>Watchlist</h2><button type="button" class="link" data-act="tab" data-tab="discover">Edit</button></div>
+      <div class="list">${wl || `<p class="muted small px">Star a quote to add it here.</p>`}</div>
+    </section>
+    <div class="foot">Stocks: Finnhub, real time while the market is open · Crypto: CoinGecko · Practice app, not affiliated with any broker. v${VERSION}</div>
+  </div>`;
+}
+function posRow(p, showAcct){
+  return `<button type="button" class="li" data-act="quote" data-key="${esc(p.key)}">
+    <div style="min-width:0"><div class="t1">${esc(p.symbol)}${showAcct ? ` <span class="pill">${ACCTS[p.acct].name}</span>` : ""}</div><div class="t2">${qf(p.qty)} ${p.kind === "crypto" ? p.symbol : p.qty === 1 ? "share" : "shares"} · ${px(p.price)}</div></div>
+    <div class="r"><div class="num" style="font-weight:600">${money(p.value)}</div>
+      <div class="tiny num ${cls(p.dayChg)}">${sMoney(p.dayChg)} today</div>
+      <div class="tiny num ${cls(p.gain)}">${sMoney(p.gain)} (${pct(p.gainPct)}) total</div></div></button>`;
+}
+function investingView(){
+  const c = compute();
+  const gain = c.accts.brokerage.gain + c.accts.crypto.gain, basis = c.accts.brokerage.basis + c.accts.crypto.basis;
+  const verdict = c.benchRet == null ? "" : (() => { const d = c.ret - c.benchRet, k = cls(d);
+    return `<div class="alert ${k === "up" ? "ok" : k === "down" ? "err" : ""}" style="font-weight:600">${k === "up" ? "Beating" : k === "down" ? "Trailing" : "Matching"} the S&amp;P 500 by ${Math.abs(d).toFixed(2)} points: you ${pct(c.ret)}, VOO ${pct(c.benchRet)} since you started.</div>`; })();
+  const all = c.positions.slice().sort((x, y) => y.value - x.value);
+  return headerBar("Investing") + `<div class="stack">
+    <section class="card stack">
+      <div class="grid2"><div class="kv" style="border-top:0;padding-left:0"><span>Today's gain/loss</span></div><div class="kv" style="padding-right:0"><span></span><span class="${cls(c.dayChg)}">${sMoney(c.dayChg)} (${pct(c.dayPct)})</span></div></div>
+      <div class="row between small"><span class="muted">Total gain/loss on positions</span><span class="num ${cls(gain)}" style="font-weight:600">${sMoney(gain)} (${pct(basis > 0 ? gain / basis * 100 : 0)})</span></div>
+      <div class="row between small"><span class="muted">Realized gain/loss</span><span class="num ${cls(c.realized)}" style="font-weight:600">${sMoney(c.realized)}</span></div>
+      <div class="row between small"><span class="muted">Total balance</span><span class="num" style="font-weight:600">${money(c.total)}</span></div>
+      ${verdict}
+    </section>
+    <section class="card flush"><div class="sectionhead"><h2>All positions</h2><span class="tiny muted">${all.length} holding${all.length === 1 ? "" : "s"}</span></div>
+      <div class="list">${all.map(p => posRow(p, true)).join("") || `<p class="muted small px" style="padding-bottom:14px">No positions yet. Tap Transact, then Trade.</p>`}</div>
+      <div class="list"><div class="li" style="cursor:default"><div><div class="t1">Cash</div><div class="t2">Core position, both accounts</div></div><div class="r num" style="font-weight:600">${money(c.accts.brokerage.cash + c.accts.crypto.cash)}</div></div></div>
+    </section></div>`;
+}
+function transactView(){
+  const open = S.orders.filter(o => o.status === "open").length;
+  const item = (act, t1, t2) => `<button type="button" class="li" data-act="${act}"><div><div class="t1">${t1}</div><div class="t2">${t2}</div></div>${CHEV}</button>`;
+  return headerBar("Transact") + `<div class="stack">
+    <section class="card flush"><div class="list">
+      ${item("trade", "Trade", "Buy or sell stocks, ETFs and crypto")}
+      ${item("transfer", "Transfer", "Move cash between Individual and Crypto")}
+      ${item("orders", "Activity &amp; Orders", open ? `${open} open order${open === 1 ? "" : "s"}` : "Orders, fills and transfers")}
+      ${item("recurring", "Automatic investments", `${(S.account.recurring || []).length} active`)}
+      ${item("settings", "Settings &amp; backup", "Price keys, iCloud backup, start over")}
+    </div></section>
+    <section class="card stack"><h2>How orders work here</h2>
+      <p class="small muted" style="margin:0">Market orders fill right away at the live price while the market is open (9:30 a.m. to 4 p.m. ET, weekdays). Placed after hours, they wait and fill at the first price after the open. Limit and stop orders are checked against every live price while the app is open; a real broker watches them all day, even with the app closed. Crypto trades any time, with a 1% fee on each trade.</p>
+    </section></div>`;
+}
+function journalView(){
+  const trades = S.trades.slice().sort((x, y) => y.ts - x.ts);
+  const buys = trades.filter(t => t.side === "buy"), green = buys.filter(t => { const q = S.prices.quotes[t.key]; return q && q.price > t.price; }).length;
+  const manual = trades.filter(t => !t.auto), written = manual.filter(t => t.reason).length;
+  return headerBar("Journal") + `<div class="stack">
+    <section class="card stack"><div class="grid2">
+      <div class="kv" style="border-top:0;padding-left:0"><span>Fills</span><span>${trades.length}</span></div>
+      <div class="kv" style="padding-right:0"><span>Buys in the green</span><span>${buys.length ? green + "/" + buys.length : "—"}</span></div>
+      <div class="kv" style="padding-left:0"><span>Reasons written</span><span>${manual.length ? written + "/" + manual.length : "—"}</span></div>
+      <div class="kv" style="padding-right:0"><span>Realized</span><span class="${cls(compute().realized)}">${sMoney(compute().realized)}</span></div></div>
+      <p class="small muted" style="margin:0">Write down why you bought, then come back and note how it played out. This is the habit that makes practice count.</p></section>
+    <section class="card flush"><div class="list">${trades.map(t => { const q = S.prices.quotes[t.key];
+      const since = t.side === "buy" && q ? `<span class="tiny num ${cls(q.price - t.price)}">${pct((q.price / t.price - 1) * 100)} since</span>` : t.realized != null ? `<span class="tiny num ${cls(t.realized)}">${sMoney(t.realized)} realized</span>` : "";
+      return `<div class="li" style="cursor:default;flex-direction:column;align-items:stretch;gap:6px">
+        <div class="row between"><div><span class="${t.side === "buy" ? "up" : "down"}" style="font-weight:700">${t.side === "buy" ? "Bought" : "Sold"}</span> <b>${esc(t.symbol)}</b> ${t.auto ? '<span class="pill">Auto</span>' : ""}</div>${since}</div>
+        <div class="t2 num">${qf(t.qty)} @ ${px(t.price)} = ${money(t.total)}${t.fee ? " incl. " + money(t.fee) + " fee" : ""} · ${when(t.ts)}</div>
+        ${t.reason ? `<div class="reason">${esc(t.reason)}</div>` : t.auto ? "" : `<div class="reason muted">No reason written.</div>`}
+        <details ${t.lesson ? "open" : ""}><summary class="small" style="cursor:pointer;color:var(--link);font-weight:600">${t.lesson ? "Looking back" : "Add a looking-back note"}</summary>
+          <div class="stack" style="margin-top:8px"><textarea class="field" id="lesson-${esc(t.id)}" placeholder="How did this play out? What would you do differently?">${esc(t.lesson || "")}</textarea><div><button type="button" class="btn sec" data-act="saveLesson" data-id="${esc(t.id)}">Save note</button></div></div></details>
+      </div>`; }).join("") || `<p class="muted small px" style="padding:14px 16px">Your fills will show up here with the reason you gave.</p>`}</div></section></div>`;
+}
+function discoverView(){
+  const L = S.look, wl = S.account.watchlist || [];
+  return headerBar("Discover") + `<div class="stack">
+    <section class="card stack"><h2>Get a quote</h2>
+      <form class="row" data-form="look"><label class="sr" for="lookIn">Symbol or company name</label><input class="field" id="lookIn" placeholder="Symbol or company, like VOO or nvidia" value="${esc(L.q)}" autocapitalize="characters" autocomplete="off"><button class="btn" type="submit" ${L.busy ? "disabled" : ""}>Go</button></form>
+      <div class="chips">${COINS.map(c => `<button type="button" class="chip" data-act="quote" data-key="C:${c.id}">${c.sym}</button>`).join("")}${["VOO","VTI","QQQ","AAPL","NVDA"].map(s => `<button type="button" class="chip" data-act="lookSym" data-sym="${s}">${s}</button>`).join("")}</div>
+      ${L.err ? `<div class="alert err">${esc(L.err)}</div>` : ""}
+      ${L.results ? (L.results.length ? `<div class="list" style="margin:0 -16px">${L.results.map(r => `<button type="button" class="li" data-act="lookSym" data-sym="${esc(r.symbol)}"><div><div class="t1">${esc(r.symbol)}</div><div class="t2">${esc(r.name)} · ${esc(r.type)}</div></div>${CHEV}</button>`).join("")}</div>` : `<p class="small muted" style="margin:0">No U.S. matches. Try another name.</p>`) : ""}
+      <div class="tiny muted">U.S. stocks and ETFs. Crypto: Bitcoin, Ethereum, Litecoin and Solana, the coins a typical broker crypto account offers.</div>
+    </section>
+    <section class="card flush"><div class="sectionhead"><h2>Watchlist</h2><span class="tiny muted">${wl.length} symbols</span></div>
+      <div class="list">${wl.map(k => { const q = S.prices.quotes[k]; return `<div class="li" style="cursor:default"><button type="button" class="link" style="color:var(--ink)" data-act="quote" data-key="${esc(k)}">${esc(q ? q.symbol : k.slice(2).toUpperCase())}</button><button type="button" class="link" data-act="unwatch" data-key="${esc(k)}">Remove</button></div>`; }).join("") || `<p class="muted small px">Open a quote and tap the star to add it.</p>`}</div></section>
+    <section class="card flush"><div class="sectionhead"><h2>Order types, explained</h2></div>
+      ${[["Market","Buys or sells right away at the current price. Simple, but you don't control the exact price."],
+         ["Limit","Sets the most you'll pay (buy) or the least you'll accept (sell). It only fills at that price or better, so it might not fill at all."],
+         ["Stop loss","Waits until the price drops to your stop (for a sell), then sells at market. Used to cap a loss. In a fast drop the fill can be below your stop."],
+         ["Stop limit","Like a stop loss, but once triggered it becomes a limit order, so you never fill below your limit. The tradeoff: it may not fill."],
+         ["Day vs GTC","Day orders cancel at 4 p.m. ET if they haven't filled. Good 'til canceled stays open until it fills or you cancel it."],
+         ["Dollars vs shares","Dollar orders buy fractional shares. Here, as at most brokers, dollar orders for stocks are market orders only."]]
+        .map(([h, b]) => `<details class="li" style="display:block;cursor:pointer"><summary class="t1">${h}</summary><p class="small muted" style="margin:8px 0 0">${b}</p></details>`).join("")}
+    </section></div>`;
+}
+
+/* ----- pages ----- */
+function pageView(pg){
+  switch (pg.type) {
+    case "account": return accountPage(pg);
+    case "quote": return quotePage(pg);
+    case "ticket": return ticketPage();
+    case "preview": return previewPage();
+    case "confirm": return confirmPage();
+    case "transfer": return transferPage();
+    case "orders": return ordersPage(null);
+    case "recurring": return recurringPage();
+    case "settings": return settingsPage();
+  }
+  return "";
+}
+function accountPage(pg){
+  const c = compute(), ac = c.accts[pg.id], tab = pg.tab || "summary";
+  const tabs = [["summary","Summary"],["positions","Positions"],["balances","Balances"],["activity","Activity & Orders"]];
+  let body = "";
+  if (tab === "summary") body = `<section class="card stack"><div><div class="label">Account value</div><div class="balance">${money(ac.value)}</div>${chgLine(ac.dayChg, ac.dayPct, "Today")}</div>
+      <div class="kv" style="padding:8px 0;border:0"><span>Total gain/loss on positions</span><span class="${cls(ac.gain)}">${sMoney(ac.gain)}</span></div>
+      <div class="kv" style="padding:8px 0"><span>Cash available to trade</span><span>${money(ac.avail)}</span></div>
+      <div class="row" style="gap:8px"><button type="button" class="btn block" data-act="trade" data-acct="${pg.id}">Trade</button><button type="button" class="btn sec block" data-act="transfer">Transfer</button></div></section>
+    <section class="card flush"><div class="sectionhead"><h2>Top positions</h2><button type="button" class="link" data-act="acctTab" data-v="positions">See all</button></div><div class="list">${ac.positions.slice(0, 4).map(p => posRow(p)).join("") || `<p class="muted small px" style="padding-bottom:14px">No positions in this account yet.</p>`}</div></section>`;
+  if (tab === "positions") body = `<section class="card flush"><div class="list">${ac.positions.map(p => posRow(p)).join("")}
+      <div class="li" style="cursor:default"><div><div class="t1">Cash</div><div class="t2">Core position</div></div><div class="r num" style="font-weight:600">${money(ac.cash)}</div></div></div></section>
+    <section class="card flush"><div class="kv"><span>Today's gain/loss</span><span class="${cls(ac.dayChg)}">${sMoney(ac.dayChg)}</span></div><div class="kv"><span>Total gain/loss</span><span class="${cls(ac.gain)}">${sMoney(ac.gain)}</span></div><div class="kv"><span>Cost basis</span><span>${money(ac.basis)}</span></div><div class="kv total"><span>Account total</span><span>${money(ac.value)}</span></div></section>`;
+  if (tab === "balances") body = `<section class="card flush">
+      <div class="kv total"><span>Account value</span><span>${money(ac.value)}</span></div>
+      <div class="kv"><span>Market value of positions</span><span>${money(ac.mv)}</span></div>
+      <div class="kv"><span>Cash (core position)</span><span>${money(ac.cash)}</span></div>
+      <div class="kv"><span>Held for open buy orders</span><span>${money(ac.reserved)}</span></div>
+      <div class="kv total"><span>Cash available to trade</span><span>${money(ac.avail)}</span></div>
+      <div class="kv"><span>Realized gain/loss</span><span class="${cls(ac.realized)}">${sMoney(ac.realized)}</span></div></section>
+      <p class="tiny muted px">Real cash accounts also track settled cash: stock sales settle one business day after the trade. This practice account treats all cash as settled.</p>`;
+  if (tab === "activity") body = activityList(pg.id);
+  return pageBar(ACCTS[pg.id].name + " " + ACCTS[pg.id].num) + `<div class="tabsline" role="tablist">${tabs.map(([k, l]) => `<button type="button" class="${tab === k ? "on" : ""}" data-act="acctTab" data-v="${k}">${l}</button>`).join("")}</div><div class="stack" style="margin-top:12px">${body}</div>`;
+}
+function orderLine(o){
+  const pillC = o.status === "open" ? "open" : o.status === "filled" ? "filled" : "bad";
+  const qty = o.qtyType === "dollars" ? money(o.dollars) : qf(o.qty) + (o.kind === "crypto" ? " " + o.symbol : " sh");
+  const priceTxt = o.orderType === "limit" ? ` at ${px(o.limit)}` : o.orderType === "stop" ? ` stop ${px(o.stop)}` : o.orderType === "stoplimit" ? ` stop ${px(o.stop)} limit ${px(o.limit)}` : "";
+  return `<div class="li" style="cursor:default;flex-direction:column;align-items:stretch;gap:4px">
+    <div class="row between"><div><b class="${o.action === "buy" ? "up" : "down"}">${o.action === "buy" ? "Buy" : "Sell"}</b> <b>${esc(o.symbol)}</b> <span class="t2">${qty}</span></div><span class="pill ${pillC}">${esc(o.status)}${o.triggered && o.status === "open" ? " · triggered" : ""}</span></div>
+    <div class="t2">${OT_LABEL[o.orderType]}${priceTxt} · ${o.orderType === "market" ? "Day" : TIF_LABEL[o.tif]} · ${orderNo(o.id)} · ${when(o.ts)}</div>
+    ${o.status === "filled" ? `<div class="t2 num">Filled ${qf(o.fillQty)} @ ${px(o.fillPrice)} · ${money(o.fillTotal)} · ${when(o.filledAt)}</div>` : ""}
+    ${o.status === "open" && o.kind === "stock" && o.goodFor > today() ? `<div class="t2">Waiting for the market to open on ${esc(o.goodFor)}</div>` : ""}
+    ${o.note ? `<div class="t2">${esc(o.note)}</div>` : ""}
+    ${o.status === "open" ? `<div><button type="button" class="link" data-act="cancelOrder" data-id="${esc(o.id)}">Cancel order</button></div>` : ""}
+  </div>`;
+}
+function activityList(acct){
+  const os = S.orders.filter(o => !acct || o.acct === acct).sort((x, y) => y.ts - x.ts);
+  const open = os.filter(o => o.status === "open"), done = os.filter(o => o.status !== "open");
+  const legacy = S.trades.filter(t => !t.orderId && (!acct || (t.acct || acctOf(t.key)) === acct)).sort((x, y) => y.ts - x.ts);
+  const xf = (S.account.transfers || []).filter(t => !acct || t.from === acct || t.to === acct).sort((x, y) => y.ts - x.ts);
+  return `<section class="card flush"><div class="sectionhead"><h2>Open orders</h2></div><div class="list">${open.map(orderLine).join("") || `<p class="muted small px" style="padding-bottom:14px">No open orders.</p>`}</div></section>
+    <section class="card flush"><div class="sectionhead"><h2>Order history</h2></div><div class="list">${done.map(orderLine).join("")}${legacy.map(t => `<div class="li" style="cursor:default"><div><div class="t1">${t.side === "buy" ? "Bought" : "Sold"} ${esc(t.symbol)}</div><div class="t2 num">${qf(t.qty)} @ ${px(t.price)} · ${when(t.ts)}</div></div><div class="r num">${money(t.total)}</div></div>`).join("") || (done.length ? "" : `<p class="muted small px" style="padding-bottom:14px">Nothing yet.</p>`)}</div></section>
+    ${xf.length ? `<section class="card flush"><div class="sectionhead"><h2>Transfers</h2></div><div class="list">${xf.map(t => `<div class="li" style="cursor:default"><div><div class="t1">${ACCTS[t.from].name} → ${ACCTS[t.to].name}</div><div class="t2">${when(t.ts)}${t.note ? " · " + esc(t.note) : ""}</div></div><div class="r num">${money(t.amount)}</div></div>`).join("")}</div></section>` : ""}`;
+}
+function ordersPage(){ return pageBar("Activity & Orders") + `<div class="stack" style="margin-top:6px">${activityList(null)}</div>`; }
+function quotePage(pg){
+  const q = S.prices.quotes[pg.key], c = compute(), pos = c.positions.find(p => p.key === pg.key);
+  const sym = q ? q.symbol : pg.key.slice(2).toUpperCase(), watched = (S.account.watchlist || []).includes(pg.key);
+  const star = `<button type="button" class="iconbtn" data-act="watch" data-key="${esc(pg.key)}" aria-label="${watched ? "Remove from" : "Add to"} watchlist" aria-pressed="${watched}">${watched ? ICON.starOn : ICON.star}</button>`;
+  if (!q) return pageBar(sym, star) + `<div class="card stack">${pg.err ? `<div class="alert err">${esc(pg.err)}</div>` : `<p class="muted" style="margin:0">Loading quote…</p>`}</div>`;
+  const canBuy = q.kind === "stock" || COINS.some(x => "C:" + x.id === q.key);
+  let chart = "";
+  if (q.kind === "crypto") chart = lineChart([(q.spark || []).map((y, i) => ({x:i, y}))], {id:"q", label:sym + " 7-day price", empty:"No chart data.", axis:["7 days ago", "Now"]});
+  else { const ch = (S.prices.charts || {})[sym];
+    chart = ch ? lineChart([ch.pts.map((p, i) => ({x:i, y:p.c}))], {id:"q", label:sym + " daily closes", axis:[ch.pts[0].d, ch.pts[ch.pts.length - 1].d]})
+      : S.settings.avKey ? `<button type="button" class="btn sec block" data-act="loadChart" data-sym="${esc(sym)}">Show 5-month chart</button>` : `<p class="small muted" style="margin:0">Add a free Alpha Vantage key in Settings to see 5-month charts for stocks.</p>`; }
+  const stats = q.kind === "stock" ? `<div class="grid2"><div class="kv"><span>Open</span><span>${px(q.open)}</span></div><div class="kv"><span>Prev close</span><span>${px(q.prev)}</span></div><div class="kv"><span>Day high</span><span>${px(q.high)}</span></div><div class="kv"><span>Day low</span><span>${px(q.low)}</span></div><div class="kv"><span>Last trade</span><span>${q.tradeAt ? new Date(q.tradeAt).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : "—"}</span></div><div class="kv"><span>Data</span><span>${S.live && marketOpen() ? "Live" : "Real time"}</span></div></div>`
+    : `<div class="kv"><span>24h change</span><span class="${cls(q.changePct)}">${pct(q.changePct)}</span></div>${q.high ? `<div class="kv"><span>24h high</span><span>${px(q.high)}</span></div><div class="kv"><span>24h low</span><span>${px(q.low)}</span></div>` : ""}<div class="kv"><span>Trading fee</span><span>1% per trade</span></div>`;
+  return pageBar(sym, star) + `
+    <div class="hero"><div class="small muted">${esc(q.name && q.name !== q.symbol ? q.name : q.kind === "crypto" ? "Crypto" : "Stock / ETF")}</div><div class="qprice">${px(q.price)}</div>
+      <div class="chg ${cls(q.changePct)}">${q.kind === "stock" && q.prev ? sMoney(q.price - q.prev) + " " : ""}(${pct(q.changePct)}) <span class="muted" style="font-weight:500">${q.kind === "crypto" ? "24h" : "Today"} · updated ${new Date(q.t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</span></div></div>
+    <div class="stack">
+      <section class="card">${chart}</section>
+      ${pg.err ? `<div class="px"><div class="alert err">${esc(pg.err)}</div></div>` : ""}
+      ${pos ? `<section class="card flush"><div class="sectionhead"><h2>Your position</h2><span class="pill">${ACCTS[pos.acct].name}</span></div>
+        <div class="kv"><span>Quantity</span><span>${qf(pos.qty)}</span></div><div class="kv"><span>Current value</span><span>${money(pos.value)}</span></div>
+        <div class="kv"><span>Today's gain/loss</span><span class="${cls(pos.dayChg)}">${sMoney(pos.dayChg)}</span></div><div class="kv"><span>Total gain/loss</span><span class="${cls(pos.gain)}">${sMoney(pos.gain)} (${pct(pos.gainPct)})</span></div>
+        <div class="kv"><span>Average cost</span><span>${px(pos.avg)}</span></div><div class="kv"><span>Cost basis</span><span>${money(pos.cost)}</span></div><div class="kv"><span>% of account</span><span>${pos.weight.toFixed(2)}%</span></div></section>` : ""}
+      <section class="card flush"><div class="sectionhead"><h2>Key statistics</h2></div>${stats}</section>
+    </div>
+    <div class="stickybottom">${canBuy ? `<button type="button" class="btn buy block" data-act="tradeKey" data-key="${esc(pg.key)}" data-side="buy">Buy</button>` : ""}${pos ? `<button type="button" class="btn sell block" data-act="tradeKey" data-key="${esc(pg.key)}" data-side="sell">Sell</button>` : ""}</div>
+    ${canBuy ? "" : `<p class="tiny muted px">New buys are limited to Bitcoin, Ethereum, Litecoin and Solana, like a typical broker crypto account. You can still sell what you hold.</p>`}`;
+}
+function ticketPage(){
+  const t = S.tk, c = compute(), q = t.key ? S.prices.quotes[t.key] : null, ac = c.accts[t.acct];
+  const pos = q ? ac.positions.find(p => p.key === t.key) : null;
+  const types = t.kind === "crypto" ? ["market","limit"] : ["market","limit","stop","stoplimit"];
+  const needLimit = ["limit","stoplimit"].includes(t.orderType), needStop = ["stop","stoplimit"].includes(t.orderType);
+  return pageBar("Trade") + `<div class="stack" style="margin-top:6px">
+    <section class="card flush tk">
+      <div class="fr"><label for="tkAcct">Account</label><select class="field" id="tkAcct">${["brokerage","crypto"].map(id => `<option value="${id}" ${t.acct === id ? "selected" : ""}>${ACCTS[id].name} ${ACCTS[id].num} · ${money(c.accts[id].avail)}</option>`).join("")}</select></div>
+      <div class="fr"><label for="tkSym">Symbol</label>${t.acct === "crypto"
+        ? `<select class="field" id="tkCoin"><option value="">Choose a coin</option>${COINS.map(x => `<option value="C:${x.id}" ${t.key === "C:" + x.id ? "selected" : ""}>${x.sym} · ${x.name}</option>`).join("")}${pos && !COINS.some(x => "C:" + x.id === t.key) ? `<option value="${esc(t.key)}" selected>${esc(t.symbol)}</option>` : ""}</select>`
+        : `<form class="row" data-form="tkSym" style="gap:6px"><input class="field" id="tkSym" placeholder="e.g. VOO" value="${esc(t.symIn)}" autocapitalize="characters" autocomplete="off"><button class="btn sec" type="submit" ${t.busy ? "disabled" : ""}>Quote</button></form>`}</div>
+      ${q ? `<div class="fr" style="grid-template-columns:1fr"><div class="row between"><div><b>${esc(q.symbol)}</b> <span class="t2 muted small">${esc(q.name && q.name !== q.symbol ? q.name : "")}</span></div><div class="r"><b class="num">${px(q.price)}</b> <span class="small num ${cls(q.changePct)}">${pct(q.changePct)}</span></div></div>
+        ${pos ? `<div class="tiny muted">You own ${qf(pos.qty)}${pos.avail < pos.qty ? ` (${qf(pos.avail)} available to sell)` : ""}</div>` : ""}</div>` : ""}
+      <div class="fr"><span class="label" style="font-size:14px">Action</span><div class="seg" role="tablist"><button type="button" class="${t.action === "buy" ? "on" : ""}" data-act="tkSet" data-f="action" data-v="buy">Buy</button><button type="button" class="${t.action === "sell" ? "on" : ""}" data-act="tkSet" data-f="action" data-v="sell">Sell</button></div></div>
+      <div class="fr"><label for="tkQty">Quantity</label><div class="row" style="gap:6px"><input class="field num" id="tkQty" inputmode="decimal" placeholder="${t.qtyType === "dollars" ? "$0.00" : "0"}" value="${esc(t.qty)}">
+        <div class="seg" style="flex:none"><button type="button" class="${t.qtyType === "shares" ? "on" : ""}" data-act="tkSet" data-f="qtyType" data-v="shares">${t.kind === "crypto" ? "Coins" : "Shares"}</button><button type="button" class="${t.qtyType === "dollars" ? "on" : ""}" data-act="tkSet" data-f="qtyType" data-v="dollars">Dollars</button></div></div></div>
+      ${t.action === "sell" && pos ? `<div class="fr" style="grid-template-columns:1fr;padding-top:0;border:0"><div><button type="button" class="link" data-act="tkSellAll">Sell all ${qf(pos.avail)}</button></div></div>` : ""}
+      <div class="fr"><label for="tkType">Order type</label><select class="field" id="tkType">${types.map(k => `<option value="${k}" ${t.orderType === k ? "selected" : ""}>${OT_LABEL[k]}</option>`).join("")}</select></div>
+      ${needStop ? `<div class="fr"><label for="tkStop">Stop price</label><input class="field num" id="tkStop" inputmode="decimal" placeholder="$0.00" value="${esc(t.stop)}"></div>` : ""}
+      ${needLimit ? `<div class="fr"><label for="tkLimit">Limit price</label><input class="field num" id="tkLimit" inputmode="decimal" placeholder="$0.00" value="${esc(t.limit)}"></div>` : ""}
+      <div class="fr"><label for="tkTif">Time in force</label><select class="field" id="tkTif" ${t.orderType === "market" ? "disabled" : ""}>${(t.orderType === "market" ? ["day"] : ["day","gtc"]).map(k => `<option value="${k}" ${t.tif === k ? "selected" : ""}>${TIF_LABEL[k]}</option>`).join("")}</select></div>
+      <div class="fr" style="grid-template-columns:1fr"><div id="tkEst"></div></div>
+    </section>
+    <section class="card stack"><label class="label" for="tkNote">Why are you making this trade? (Journal)</label><textarea class="field" id="tkNote" placeholder="e.g. Long-term S&P 500 core holding. Plan to add monthly.">${esc(t.note)}</textarea></section>
+    ${t.err ? `<div class="px"><div class="alert err">${esc(t.err)}</div></div>` : ""}
+    <div class="px"><button type="button" class="btn block" data-act="preview" ${t.busy || !q ? "disabled" : ""}>${t.busy ? "Getting latest price…" : "Preview order"}</button></div>
+    <p class="tiny muted px" style="margin:0">${t.kind === "crypto" ? "Crypto trades 24/7 and every trade has a 1% fee." : marketOpen() ? "Market is open." : "Market is closed. Market orders will wait for the next open; limit and stop orders stay open until they trigger or expire."}</p>
+  </div>`;
+}
+function tkOrder(){
+  const t = S.tk;
+  return {acct:t.acct, key:t.key, kind:t.kind, symbol:t.symbol, name:t.name, action:t.action, qtyType:t.qtyType,
+    qty:t.qtyType === "shares" ? round(num(t.qty), 6) : 0, dollars:t.qtyType === "dollars" ? round(num(t.qty), 2) : 0,
+    orderType:t.orderType, limit:["limit","stoplimit"].includes(t.orderType) ? num(t.limit) : 0, stop:["stop","stoplimit"].includes(t.orderType) ? num(t.stop) : 0,
+    tif:t.orderType === "market" ? "day" : t.tif, reason:(t.note || "").trim().slice(0, 600)};
+}
+function tkEstHtml(){
+  const t = S.tk; if (!t || !t.key) return `<span class="small muted">Choose a symbol to see an estimate.</span>`;
+  const q = S.prices.quotes[t.key], o = tkOrder(); if (!q || !(o.qty || o.dollars)) return `<span class="small muted">Estimated order value appears here.</span>`;
+  const e = estOrder(o, q);
+  return `<div class="row between small"><span class="muted">Estimated ${o.action === "buy" ? "cost" : "proceeds"}${e.fee ? " incl. 1% fee" : ""}</span><b class="num">${money(e.total)}</b></div>
+    ${o.qtyType === "dollars" ? `<div class="row between tiny muted"><span>≈ quantity</span><span class="num">${qf(round(e.qty, 6))}</span></div>` : ""}`;
+}
+function previewPage(){
+  const t = S.tk, o = tkOrder(), q = S.prices.quotes[o.key], e = estOrder(o, q), ac = compute().accts[o.acct];
+  const after = o.action === "buy" ? ac.avail - e.total : ac.avail + e.total;
+  return pageBar("Preview order") + `<div class="stack" style="margin-top:6px">
+    <section class="card flush">
+      <div class="kv"><span>Account</span><span>${ACCTS[o.acct].name} ${ACCTS[o.acct].num}</span></div>
+      <div class="kv"><span>Symbol</span><span>${esc(o.symbol)}</span></div>
+      <div class="kv"><span>Action</span><span class="${o.action === "buy" ? "up" : "down"}">${o.action === "buy" ? "Buy" : "Sell"}</span></div>
+      <div class="kv"><span>Quantity</span><span>${o.qtyType === "dollars" ? money(o.dollars) + ` (≈ ${qf(round(e.qty, 6))})` : qf(o.qty)}</span></div>
+      <div class="kv"><span>Order type</span><span>${OT_LABEL[o.orderType]}</span></div>
+      ${o.stop ? `<div class="kv"><span>Stop price</span><span>${px(o.stop)}</span></div>` : ""}
+      ${o.limit ? `<div class="kv"><span>Limit price</span><span>${px(o.limit)}</span></div>` : ""}
+      <div class="kv"><span>Time in force</span><span>${TIF_LABEL[o.tif]}</span></div>
+      <div class="kv"><span>Last price</span><span>${px(q.price)}</span></div>
+    </section>
+    <section class="card flush">
+      <div class="kv"><span>Principal</span><span>${money(e.gross)}</span></div>
+      <div class="kv"><span>${o.kind === "crypto" ? "Trading fee (1%)" : "Commission"}</span><span>${money(e.fee)}</span></div>
+      <div class="kv total"><span>Estimated order value</span><span>${money(e.total)}</span></div>
+      <div class="kv"><span>Cash available after order</span><span>${money(after)}</span></div>
+    </section>
+    ${o.reason ? `<section class="card"><div class="label">Your reason</div><div class="reason" style="margin-top:6px">${esc(o.reason)}</div></section>` : ""}
+    ${o.kind === "stock" && !marketOpen() ? `<div class="px"><div class="alert">The market is closed. This order will be placed now and ${o.orderType === "market" ? "fill at the first price after the open" : "start being checked when the market opens"}.</div></div>` : ""}
+    ${t.err ? `<div class="px"><div class="alert err">${esc(t.err)}</div></div>` : ""}
+  </div>
+  <div class="stickybottom"><button type="button" class="btn sec block" data-act="back">Edit</button><button type="button" class="btn ${o.action === "buy" ? "buy" : "sell"} block" data-act="place" ${t.busy ? "disabled" : ""}>${t.busy ? "Placing…" : "Place order"}</button></div>`;
+}
+function confirmPage(){
+  const o = S.orders.find(x => x.id === S.lastOrderId); if (!o) return pageBar("Order") + "";
+  const filled = o.status === "filled";
+  return `<div class="pagebar"><div></div><h1>${filled ? "Order filled" : "Order received"}</h1><div></div></div>
+    <div class="stack"><div class="check">${filled ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>'}</div>
+      <p style="text-align:center;margin:0" class="px">${filled ? `${o.action === "buy" ? "Bought" : "Sold"} <b>${qf(o.fillQty)} ${esc(o.symbol)}</b> at <b>${px(o.fillPrice)}</b> for ${money(o.fillTotal)}.` : `Your ${OT_LABEL[o.orderType].toLowerCase()} order to ${o.action} ${esc(o.symbol)} is open. ${o.kind === "stock" && o.goodFor > today() ? "It will be checked when the market opens on " + esc(o.goodFor) + "." : "It fills when the price condition is met."}`}</p>
+      <section class="card flush"><div class="kv"><span>Order number</span><span>${orderNo(o.id)}</span></div><div class="kv"><span>Status</span><span>${filled ? "Filled" : "Open"}</span></div><div class="kv"><span>Account</span><span>${ACCTS[o.acct].name} ${ACCTS[o.acct].num}</span></div></section></div>
+    <div class="stickybottom"><button type="button" class="btn sec block" data-act="viewOrders">View orders</button><button type="button" class="btn block" data-act="done">Done</button></div>`;
+}
+function transferPage(){
+  const c = compute(), x = S.xfer, to = x.from === "brokerage" ? "crypto" : "brokerage";
+  return pageBar("Transfer") + `<div class="stack" style="margin-top:6px"><section class="card flush tk">
+    <div class="fr"><label for="xFrom">From</label><select class="field" id="xFrom">${["brokerage","crypto"].map(id => `<option value="${id}" ${x.from === id ? "selected" : ""}>${ACCTS[id].name} · ${money(c.accts[id].avail)} available</option>`).join("")}</select></div>
+    <div class="fr"><span class="label" style="font-size:14px">To</span><b>${ACCTS[to].name} ${ACCTS[to].num}</b></div>
+    <div class="fr"><label for="xAmt">Amount</label><input class="field num" id="xAmt" inputmode="decimal" placeholder="$0.00" value="${esc(x.amt)}"></div></section>
+    ${x.err ? `<div class="px"><div class="alert err">${esc(x.err)}</div></div>` : ""}
+    <div class="px"><button type="button" class="btn block" data-act="doTransfer">Transfer now</button></div>
+    <p class="tiny muted px" style="margin:0">Moving cash into the Crypto account is how you fund crypto buys, the same way a broker's crypto account draws from your brokerage account.</p></div>`;
+}
+function recurringPage(){
+  const r = S.rec, list = S.account.recurring || [];
+  return pageBar("Automatic investments") + `<div class="stack" style="margin-top:6px">
+    <section class="card flush"><div class="list">${list.map(p => `<div class="li" style="cursor:default"><div><div class="t1">${esc(p.symbol)} · ${money(p.amount)}</div><div class="t2">${p.freq === "biweekly" ? "Every 2 weeks" : esc(p.freq[0].toUpperCase() + p.freq.slice(1))} · next ${esc(p.next)}${p.note ? " · " + esc(p.note) : ""}</div></div><button type="button" class="link" data-act="recDel" data-id="${esc(p.id)}">Remove</button></div>`).join("") || `<p class="muted small px" style="padding:14px 16px">No automatic investments yet.</p>`}</div></section>
+    <section class="card stack"><h2>New automatic investment</h2>
+      <div class="seg"><button type="button" class="${r.kind === "stock" ? "on" : ""}" data-act="recKind" data-v="stock">Stock / ETF</button><button type="button" class="${r.kind === "crypto" ? "on" : ""}" data-act="recKind" data-v="crypto">Crypto</button></div>
+      ${r.kind === "stock" ? `<div><label class="label" for="recSym">Symbol</label><input class="field" id="recSym" placeholder="e.g. VOO" value="${esc(r.sym)}" autocapitalize="characters"></div>`
+        : `<div><label class="label" for="recCoin">Coin</label><select class="field" id="recCoin">${COINS.map(x => `<option value="${x.id}" ${r.sym === x.id ? "selected" : ""}>${x.sym} · ${x.name}</option>`).join("")}</select></div>`}
+      <div class="row" style="gap:8px"><div style="flex:1"><label class="label" for="recAmt">Amount</label><input class="field num" id="recAmt" inputmode="decimal" value="${esc(r.amt)}"></div>
+        <div style="flex:1"><label class="label" for="recFreq">Frequency</label><select class="field" id="recFreq">${["weekly","biweekly","monthly"].map(f => `<option value="${f}" ${r.freq === f ? "selected" : ""}>${f === "biweekly" ? "Every 2 weeks" : f[0].toUpperCase() + f.slice(1)}</option>`).join("")}</select></div></div>
+      ${r.err ? `<div class="alert err">${esc(r.err)}</div>` : ""}
+      <button type="button" class="btn block" data-act="recSave" ${r.busy ? "disabled" : ""}>${r.busy ? "Checking price…" : "Start · first buy today"}</button>
+      <p class="tiny muted" style="margin:0">Each one places a dollar-based market order on schedule, the next time you open the app. Crypto plans draw from the Crypto account's cash.</p></section></div>`;
+}
+function settingsPage(){
+  const lb = S.settings.lastBackup ? new Date(S.settings.lastBackup).toLocaleDateString() : "never";
+  return pageBar("Settings") + `<div class="stack" style="margin-top:6px">
+    <section class="card stack"><h2>Price data</h2>
+      <div><label class="label" for="setFh">Finnhub API key (live stock prices)</label><input class="field" id="setFh" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(S.settings.fhKey)}" placeholder="Paste your key"></div>
+      <div><label class="label" for="setAv">Alpha Vantage API key (optional, stock charts)</label><input class="field" id="setAv" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(S.settings.avKey)}" placeholder="Optional"></div>
+      <button type="button" class="btn block" data-act="saveKeys">Save keys</button>
+      <p class="tiny muted" style="margin:0">Keys are saved only on this phone. Get them free at finnhub.io and alphavantage.co. Crypto prices need no key.</p></section>
+    <section class="card stack"><h2>Backup</h2>
+      <p class="small muted" style="margin:0">Your portfolio is saved on this phone. Back it up to iCloud Drive so you never lose it. Last backup: ${esc(lb)}.</p>
+      <div class="row" style="gap:8px"><button type="button" class="btn block" data-act="backup">Back up now</button><button type="button" class="btn sec block" data-act="restore">Restore</button></div>
+      <input type="file" id="restoreFile" accept="application/json,.json" class="sr"></section>
+    <section class="card flush"><div class="list"><button type="button" class="li" data-act="reset"><div><div class="t1 down">Start over</div><div class="t2">Erase everything and pick new practice cash</div></div>${CHEV}</button></div></section>
+    <p class="foot">Paperstack v${VERSION}</p></div>`;
+}
+function backupDue(){ return S.account && S.trades.length > 0 && Date.now() - (S.settings.lastBackup || S.account.createdAt) > 30 * 864e5; }
+function setupView(){
+  const opts = [1000, 10000, 25000, 100000];
+  return `<div class="topbar"><div class="brandline"><b>Paperstack</b> · Practice money</div></div><div class="px"><div class="bigtitle">${S.resetting ? "Start over" : "Welcome"}</div></div>
+  <section class="card stack"><p class="muted" style="margin:0">Pick your practice cash. It goes into your Individual brokerage account; move some to the Crypto account if you want to trade coins. ${S.resetting ? "<b>Your current orders, fills and journal will be erased.</b>" : ""}</p>
+    <div class="opts">${opts.map(o => `<button type="button" class="opt ${S.setupAmt === o ? "on" : ""}" data-act="setupAmt" data-v="${o}" aria-pressed="${S.setupAmt === o}">${money(o).replace(".00","")}</button>`).join("")}</div>
+    <div><label class="label" for="setupCustom">Or type an amount</label><input class="field num" id="setupCustom" inputmode="decimal" placeholder="e.g. 5000"></div>
+    ${S.resetting ? "" : `<div><label class="label" for="setupKey">Finnhub API key (free at finnhub.io, for live stock prices)</label><input class="field" id="setupKey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste your key" value="${esc(S.settings.fhKey)}"></div>`}
+    <div class="row" style="gap:8px">${S.resetting ? `<button type="button" class="btn sec block" data-act="cancelReset">Cancel</button>` : ""}<button type="button" class="btn block" data-act="start" ${S.setupBusy ? "disabled" : ""}>${S.setupBusy ? "Setting up…" : "Open practice account"}</button></div></section>`;
+}
+function renderModal(){
+  const m = S.modal;
+  $("#modal").innerHTML = !m ? "" : `<div class="modal-back" data-act="modalClose"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt" data-stop="1"><h2 id="mt" style="margin:0">${esc(m.title)}</h2><p class="muted" style="margin:0">${esc(m.body)}</p>
+    <div class="row" style="gap:8px"><button type="button" class="btn sec block" data-act="modalClose">Cancel</button><button type="button" class="btn ${m.danger ? "sell" : ""} block" data-act="modalOk">${esc(m.ok)}</button></div></div></div>`;
+}
+
+/* ================= actions ================= */
+async function openQuote(key){
+  const pg = {type:"quote", key, err:""}; go(pg);
+  try { await quoteFor(key, false); persist(); } catch(e) { pg.err = priceMsg(e); }
+  if (top_() === pg) render();
+}
+async function tkLoad(key){
+  const t = S.tk; t.busy = true; t.err = ""; render();
+  try { const q = await quoteFor(key, false); t.key = q.key; t.symbol = q.symbol; t.name = q.name; t.kind = q.kind; t.symIn = q.symbol; persist(); }
+  catch(e) { t.err = priceMsg(e); t.key = null; }
+  t.busy = false; render();
+}
+const A = {
+  tab(el){ S.tab = el.dataset.tab; S.flash = ""; render(); window.scrollTo(0, 0); },
+  back(){ back(); },
+  refresh(){ S.flash = ""; refreshPrices(true); },
+  range(el){ S.range = el.dataset.v; render(); },
+  account(el){ go({type:"account", id:el.dataset.id, tab:"summary"}); },
+  acctTab(el){ top_().tab = el.dataset.v; render(); },
+  quote(el){ openQuote(el.dataset.key); },
+  lookSym(el){ openQuote("S:" + el.dataset.sym.toUpperCase()); },
+  watch(el){ const k = el.dataset.key, w = S.account.watchlist || (S.account.watchlist = []); const i = w.indexOf(k); if (i >= 0) w.splice(i, 1); else w.push(k); persist(); render(); },
+  unwatch(el){ S.account.watchlist = (S.account.watchlist || []).filter(k => k !== el.dataset.key); persist(); render(); },
+  async loadChart(el){ const pg = top_(); el.disabled = true; el.textContent = "Loading…"; try { await fetchChart(el.dataset.sym); } catch(e) { pg.err = priceMsg(e); } render(); },
+  trade(el){ openTicket({}); if (el.dataset.acct) { S.tk.acct = el.dataset.acct; S.tk.kind = el.dataset.acct === "crypto" ? "crypto" : "stock"; render(); } },
+  tradeKey(el){ openTicket({key:el.dataset.key, action:el.dataset.side}); },
+  transfer(){ S.xfer = {from:"brokerage", amt:"", err:""}; go({type:"transfer"}); },
+  orders(){ go({type:"orders"}); },
+  recurring(){ S.rec.err = ""; go({type:"recurring"}); },
+  viewOrders(){ S.stack = [{type:"orders"}]; render(); },
+  done(){ S.stack = []; S.tab = "home"; render(); window.scrollTo(0, 0); },
+  cancelOrder(el){ const id = el.dataset.id; S.modal = {title:"Cancel this order?", body:"It will be removed from your open orders.", ok:"Cancel order", danger:true, run(){ cancelOrder(id); }}; render(); },
+  tkSet(el){ const t = S.tk; const f = el.dataset.f, v = el.dataset.v; t[f] = v; t.err = "";
+    if (f === "qtyType" && v === "dollars" && t.kind === "stock") { t.orderType = "market"; t.tif = "day"; }
+    if (f === "qtyType" || f === "action") t.qty = ""; render(); },
+  tkSellAll(){ const t = S.tk; const p = compute().accts[t.acct].positions.find(x => x.key === t.key); if (!p) return; t.qtyType = "shares"; t.qty = String(round(p.avail, 6)); render(); },
+  async preview(){
+    const t = S.tk; const o = tkOrder(); t.err = "";
+    t.busy = true; render();
+    let q = S.prices.quotes[o.key];
+    try { q = await quoteFor(o.key, o.orderType === "market"); persist(); } catch(e) { if (!q) { t.err = priceMsg(e); t.busy = false; render(); return; } }
+    t.busy = false;
+    const v = validateOrder(o, q); if (v) { t.err = v; render(); return; }
+    go({type:"preview"});
+  },
+  async place(){
+    const t = S.tk; const o = tkOrder(); const q = S.prices.quotes[o.key];
+    const v = validateOrder(o, q); if (v) { t.err = v; render(); return; }
+    t.busy = true; render();
+    try { const placed = await placeOrder(o); S.lastOrderId = placed.id; t.busy = false; S.stack = [{type:"confirm"}]; render(); window.scrollTo(0, 0); }
+    catch(e) { t.busy = false; t.err = "The order couldn't be placed. Try again."; render(); }
+  },
+  doTransfer(){
+    const x = S.xfer, amt = round(num($("#xAmt").value), 2), to = x.from === "brokerage" ? "crypto" : "brokerage";
+    x.amt = $("#xAmt").value;
+    if (!(amt >= 1)) { x.err = "Enter at least $1.00."; render(); return; }
+    if (amt > compute().accts[x.from].avail + 0.005) { x.err = `${ACCTS[x.from].name} only has ${money(compute().accts[x.from].avail)} available.`; render(); return; }
+    (S.account.transfers = S.account.transfers || []).push({id:rid(), ts:Date.now(), from:x.from, to, amount:amt});
+    persist(); S.stack.pop(); S.flash = `Moved ${money(amt)} to ${ACCTS[to].name}.`; S.flashKind = "ok"; render();
+  },
+  recKind(el){ S.rec.kind = el.dataset.v; S.rec.sym = el.dataset.v === "crypto" ? "bitcoin" : ""; render(); },
+  async recSave(){
+    const r = S.rec; r.sym = r.kind === "stock" ? $("#recSym").value.trim().toUpperCase() : $("#recCoin").value; r.amt = $("#recAmt").value; r.freq = $("#recFreq").value;
+    const amount = round(num(r.amt), 2);
+    if (!r.sym) { r.err = "Enter a symbol."; render(); return; }
+    if (!(amount >= 1)) { r.err = "Amount must be at least $1."; render(); return; }
+    r.busy = true; r.err = ""; render();
+    try { const q = await quoteFor(r.kind === "stock" ? "S:" + r.sym : "C:" + r.sym, false);
+      (S.account.recurring = S.account.recurring || []).push({id:rid(), key:q.key, kind:q.kind, symbol:q.symbol, name:q.name, amount, freq:r.freq, next:today()});
+      await persist(); persist(); r.busy = false; r.sym = ""; render(); runRecurring();
+    } catch(e) { r.busy = false; r.err = priceMsg(e); render(); }
+  },
+  recDel(el){ S.account.recurring = (S.account.recurring || []).filter(x => x.id !== el.dataset.id); persist(); render(); },
+  saveLesson(el){ const t = S.trades.find(x => x.id === el.dataset.id), ta = $("#lesson-" + CSS.escape(el.dataset.id)); if (!t || !ta) return; const v = ta.value.trim().slice(0, 800); if (v === (t.lesson || "")) return; t.lesson = v; saveItem("trades", t); el.textContent = "Saved"; },
+  setupAmt(el){ S.setupAmt = +el.dataset.v; render(); },
+  start(){ const k = $("#setupKey"); if (k) S.settings.fhKey = k.value.trim(); const v = num($("#setupCustom") && $("#setupCustom").value); startAccount(v >= 100 ? Math.min(round(v, 2), 1e7) : S.setupAmt); },
+  settings(){ go({type:"settings"}); },
+  backup(){ doBackup(); },
+  restore(){ const i = $("#restoreFile"); if (i) i.click(); },
+  saveKeys(){ S.settings.fhKey = $("#setFh").value.trim(); S.settings.avKey = $("#setAv").value.trim(); persist(); S.flash = "Saved."; S.flashKind = "ok"; S.stack.pop(); render(); if (ws) { try { ws.close(); } catch(e) {} } refreshPrices(true); },
+  update(){ location.reload(); },
+  snooze(){ S.update = null; updSnoozeUntil = Date.now() + 15 * 60e3; renderUpd(); },
+  reset(){ S.modal = {title:"Start over?", body:"This erases your orders, fills, journal notes and chart, then lets you pick new practice cash.", ok:"Erase and start over", danger:true, run(){ S.resetting = true; S.setupAmt = S.account.startCash; render(); }}; render(); },
+  cancelReset(){ S.resetting = false; render(); },
+  modalClose(el, e){ if (el.classList.contains("modal-back") && e.target.closest("[data-stop]")) return; S.modal = null; render(); },
+  modalOk(){ const m = S.modal; S.modal = null; render(); m.run(); }
+};
+document.addEventListener("click", e => { const el = e.target.closest("[data-act]"); if (!el || el.disabled) return; const fn = A[el.dataset.act]; if (fn) fn(el, e); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && S.modal) { S.modal = null; render(); } });
+document.addEventListener("submit", async e => {
+  e.preventDefault(); const f = e.target.dataset.form;
+  if (f === "tkSym") { const v = $("#tkSym").value.trim().toUpperCase(); S.tk.symIn = v; if (v) tkLoad("S:" + v.replace(/[^A-Z0-9.\-]/g, "")); }
+  if (f === "look") {
+    const v = $("#lookIn").value.trim(); const L = S.look; L.q = v; L.err = ""; L.results = null; if (!v) return;
+    const coin = COINS.find(c => c.sym.toLowerCase() === v.toLowerCase() || c.name.toLowerCase() === v.toLowerCase() || c.id === v.toLowerCase());
+    if (coin) { openQuote("C:" + coin.id); return; }
+    if (/^[A-Za-z.\-]{1,4}$/.test(v) || /^[A-Z.\-]{1,6}$/.test(v)) { openQuote("S:" + v.toUpperCase()); return; }
+    L.busy = true; render();
+    try { L.results = await searchStocks(v); } catch(x) { L.err = priceMsg(x); }
+    L.busy = false; render();
+  }
+});
+document.addEventListener("input", e => {
+  const id = e.target.id, v = e.target.value, t = S.tk;
+  if (id === "tkQty" && t) { t.qty = v; afterRender(); }
+  else if (id === "tkLimit" && t) { t.limit = v; afterRender(); }
+  else if (id === "tkStop" && t) { t.stop = v; afterRender(); }
+  else if (id === "tkNote" && t) t.note = v;
+  else if (id === "tkSym" && t) t.symIn = v;
+  else if (id === "lookIn") S.look.q = v;
+  else if (id === "xAmt") S.xfer.amt = v;
+});
+document.addEventListener("change", e => {
+  const id = e.target.id, v = e.target.value, t = S.tk;
+  if (id === "tkAcct" && t) { t.acct = v; t.kind = v === "crypto" ? "crypto" : "stock"; t.key = null; t.symbol = ""; t.symIn = ""; t.orderType = "market"; t.qtyType = "shares"; t.qty = ""; t.err = ""; render(); }
+  else if (id === "tkCoin" && t) { if (v) tkLoad(v); }
+  else if (id === "tkType" && t) { t.orderType = v; if (v === "market") t.tif = "day"; if (v !== "market" && t.kind === "stock" && t.qtyType === "dollars") { t.qtyType = "shares"; t.qty = ""; } t.err = ""; render(); }
+  else if (id === "tkTif" && t) t.tif = v;
+  else if (id === "xFrom") { S.xfer.from = v; render(); }
+  else if (id === "restoreFile" && e.target.files && e.target.files[0]) { const f = e.target.files[0]; S.modal = {title:"Restore this backup?", body:"It replaces everything currently in the app with the backup.", ok:"Restore", danger:true, run(){ restoreFrom(f); }}; render(); }
+});
+
+/* ================= boot ================= */
+let updSnoozeUntil = 0;
+function renderUpd(){ const el = $("#upd"); if (!el) return; el.innerHTML = S.update && Date.now() > updSnoozeUntil ? `<div class="updbar" role="status"><span>New version ready</span><button type="button" data-act="update">Update now</button><button type="button" class="x" data-act="snooze" aria-label="Remind me later">✕</button></div>` : ""; }
+async function checkUpdate(){
+  try { const r = await fetch("version.json?t=" + Date.now(), {cache:"no-store"}); if (!r.ok) return; const v = await r.json();
+    if (v && v.version && v.version !== VERSION) { S.update = v.version; renderUpd(); } } catch(e) {}
+}
+function boot(){
+  loadLocal();
+  S.ready = true; render();
+  if (S.account) { S.startedUp = true; setTimeout(async () => { await refreshPrices(false, null, true); await runRecurring(); }, 200); }
+  checkUpdate();
+}
+/* keep prices and open orders current while the app is open */
+let tick = 0;
+setInterval(() => {
+  tick++;
+  if (!S.ready || !S.account || document.hidden || S.refreshing) return;
+  const keys = trackedKeys();
+  const ck = keys.filter(k => k.startsWith("C:") && !cryptoFresh(S.prices.quotes[k], true));
+  const sk = marketOpen() && S.settings.fhKey ? keys.filter(k => k.startsWith("S:") && (!S.live || !wsSubs.has(k.slice(2))) && !stockFresh(S.prices.quotes[k], false)) : [];
+  if (ck.length || sk.length) refreshPrices(false, ck.concat(sk), true); else { evaluateOrders(); syncStream(); }
+  if (tick % 10 === 0) { checkUpdate(); renderUpd(); }
+}, 20000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && S.account) { checkUpdate(); refreshPrices(false, null, true); } else syncStream(); });
+boot();
+})();
+</script>
+</body>
+</html>
